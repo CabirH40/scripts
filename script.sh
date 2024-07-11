@@ -1,11 +1,15 @@
 #!/bin/bash
+
+# Telegram bot details
 telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
 telegram_group='-1002175706144'
 telegram_user_tag="@CabirH2000 @testnetsever"
 process_name="humanode-peer"
 workspace_file="/root/.humanode/workspaces/default/workspace.json" # تأكد من مسار ملف JSON
 nodename=$(jq -r '.nodename' $workspace_file)
-# Stop editing
+
+# Execute command to fetch authentication URL
+auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
 
 # Script starts here
 server_ip=$(curl -s https://api.ipify.org)
@@ -18,16 +22,16 @@ else
   status=$(curl -s http://127.0.0.1:9933 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
 
   if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == "$(echo '"inactive"' | tr '[:upper:]' '[:lower:]')" ]; then
-    message="🚨${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag}"
+    message="🚨${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
   else
     current_timestamp=$(date +%s)
     expires_at=$(curl -s http://127.0.0.1:9933 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
     difference=$(( (expires_at / 1000 - current_timestamp) / 60 ))
 
     if (( difference > 25 && difference < 31 )); then
-      message="🟡${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag}"
+      message=" ${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
     elif (( difference > 0 && difference < 6 )); then
-      message="🔴${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag}"
+      message="🔴${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
     else
       message="NULL"
     fi
