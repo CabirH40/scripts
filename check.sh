@@ -82,8 +82,10 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 # Function to check server status
 check_server() {
   local server_ip=$1
-  # Try to connect to the server
-  if ssh root@"$server_ip" exit 2>&1 | grep -q "Connection timed out"; then
+  # Try to connect to the server and capture the output
+  output=$(ssh root@"$server_ip" exit 2>&1)
+  
+  if echo "$output" | grep -q "Connection timed out"; then
     # If SSH connection times out, send a notification
     local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ip} ${telegram_user_tag}"
     # Debugging: Print the message to verify its correctness
