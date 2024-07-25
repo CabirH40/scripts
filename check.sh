@@ -82,10 +82,8 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 # Function to check server status
 check_server() {
   local server_ip=$1
-  local result
-  result=$(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -q "${server_ip}" "exit" 2>&1)
-
-  if echo "$result" | grep -q "Connection timed out"; then
+  # Try to connect to the server
+  if ! ssh -o ConnectTimeout=10 -o BatchMode=yes -o StrictHostKeyChecking=no "$server_ip" exit 2>&1 | grep -q "Connection timed out"; then
     # If SSH connection times out, send a notification
     local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ip} ${telegram_user_tag}"
     # Debugging: Print the message to verify its correctness
@@ -94,7 +92,7 @@ check_server() {
     curl -s -X POST -d "chat_id=${telegram_group}" -d "text=${message}" ${telegram_bot} >/dev/null
   else
     # Print the result for other cases (optional)
-    echo "Debug: SSH connection result for $server_ip: $result"
+    echo "Debug: Connection successful or error other than timeout for $server_ip"
   fi
 }
 
