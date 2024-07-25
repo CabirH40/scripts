@@ -75,7 +75,7 @@ servers=(
   91.151.90.151
   91.151.90.94
 )
-ssh_key_path=4Y8z1eblEJ # مسار مفتاح SSH الخاص بك
+
 
 
 # Telegram API URL
@@ -84,7 +84,7 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 # Function to check server status
 check_server() {
   local server_ip=$1
-  if ssh -i "${ssh_key_path}" -q "${root}@${server_ip}" "exit" &>/dev/null; then
+  if ssh -i "${4Y8z1eblEJ}" -q "${root}@${server_ip}" "exit" &>/dev/null; then
     # If SSH connection is successful, do nothing
     :
   else
