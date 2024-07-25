@@ -76,7 +76,9 @@ servers=(
   91.151.90.94
 )
 
-
+# SSH details
+ssh_password="4Y8z1eblEJ" # Replace with your SSH password
+ssh_user="root"
 
 # Telegram API URL
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
@@ -84,7 +86,7 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 # Function to check server status
 check_server() {
   local server_ip=$1
-  if ssh -i "${4Y8z1eblEJ}" -q "${root}@${server_ip}" "exit" &>/dev/null; then
+  if sshpass -p "${ssh_password}" ssh -o StrictHostKeyChecking=no -o BatchMode=yes -q "${ssh_user}@${server_ip}" "exit" &>/dev/null; then
     # If SSH connection is successful, do nothing
     :
   else
