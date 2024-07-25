@@ -83,20 +83,20 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
 # Function to check server status
 check_server() {
-  local server_ipp=$1
-  if ssh -i "${ssh_key_path}" -q "${ssh_user}@${server_ipp}" "exit" &>/dev/null; then
+  local server_ip=$1
+  if ssh -i "${ssh_key_path}" -q "${ssh_user}@${server_ip}" "exit" &>/dev/null; then
     # If SSH connection is successful, do nothing
     :
   else
     # If SSH connection fails, send a message to Telegram with the failed server's IP
-    local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ipp} ${telegram_user_tag}"
-    curl -s -X POST -d "chat_id=${telegram_group}" -d "text=${message}" ${telegram_bot} >/dev/null
+    local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ip} ${telegram_user_tag}"
+    curl -s -X POST -d "chat_id=${telegram_group}" -d "text=$(printf "%s" "$message")" ${telegram_bot} >/dev/null
   fi
 }
 
 # Loop through each server and check status
 for server_ip in "${servers[@]}"; do
-  check_server "$server_ipp"
+  check_server "$server_ip"
 done
 
 echo "Script completed."
