@@ -88,9 +88,12 @@ check_server() {
     # If SSH connection is successful, do nothing
     :
   else
-    # If SSH connection fails, send a message to Telegram with the failed server's IP
+    # If SSH connection fails, create a message with the failed server's IP
     local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ip} ${telegram_user_tag}"
-    curl -s -X POST -d "chat_id=${telegram_group}" -d "text=$(printf "%s" "$message")" ${telegram_bot} >/dev/null
+    # Debugging: Print the message to verify its correctness
+    echo "Debug: ${message}"
+    # Send the message to Telegram
+    curl -s -X POST -d "chat_id=${telegram_group}" -d "text=${message}" ${telegram_bot} >/dev/null
   fi
 }
 
