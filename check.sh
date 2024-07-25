@@ -76,26 +76,25 @@ servers=(
   91.151.90.94
 )
 
-# SSH details
-ssh_password="4Y8z1eblEJ" # Replace with your SSH password
-ssh_user="root"
-
 # Telegram API URL
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
 # Function to check server status
 check_server() {
   local server_ip=$1
-  if sshpass -p "${ssh_password}" ssh -o StrictHostKeyChecking=no -o BatchMode=yes -q "${ssh_user}@${server_ip}" "exit" &>/dev/null; then
-    # If SSH connection is successful, do nothing
-    :
-  else
-    # If SSH connection fails, create a message with the failed server's IP
+  local result
+  result=$(ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -q "${server_ip}" "exit" 2>&1)
+
+  if echo "$result" | grep -q "Connection timed out"; then
+    # If SSH connection times out, send a notification
     local message="⚠️ فشل الاتصال في هذا السيرفر: ${server_ip} ${telegram_user_tag}"
     # Debugging: Print the message to verify its correctness
     echo "Debug: ${message}"
     # Send the message to Telegram
     curl -s -X POST -d "chat_id=${telegram_group}" -d "text=${message}" ${telegram_bot} >/dev/null
+  else
+    # Print the result for other cases (optional)
+    echo "Debug: SSH connection result for $server_ip: $result"
   fi
 }
 
