@@ -83,7 +83,7 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
 # Function to check server status
 check_server() {
-  local server_ip=$1
+  local server_ipp=$1
   if ssh -i "${ssh_key_path}" -q "${ssh_user}@${server_ipp}" "exit" &>/dev/null; then
     # If SSH connection is successful, do nothing
     :
