@@ -85,8 +85,10 @@ telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 check_server() {
   server_ip=$1
   if ssh -i ${ssh_key_path} ${ssh_user}@${server_ip} "exit" &>/dev/null; then
-    echo "Connected to ${server_ip}"
+    # If SSH connection is successful, do nothing
+    :
   else
+    # If SSH connection fails, send a message to Telegram with the failed server's IP
     message="⚠️Failed to connect to server ${server_ip} ${telegram_user_tag}"
     curl -X POST -H "Content-Type:multipart/form-data" -F chat_id=${telegram_group} -F text="${message}" ${telegram_bot}
   fi
