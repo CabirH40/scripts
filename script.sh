@@ -5,7 +5,7 @@ telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
 telegram_group='-1002175706144'
 telegram_user_tag="@CabirH2000 @testnetsever"
 process_name="humanode-peer"
-workspace_file="/root/.humanode/workspaces/default/workspace.json" # تأكد من مسار ملف JSON
+workspace_file="/root/.humanode/workspaces/default/workspace.json" 
 nodename=$(jq -r '.nodename' $workspace_file)
 
 # Execute command to fetch authentication URL
