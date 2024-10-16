@@ -31,7 +31,14 @@ message="NULL"
 # Check for re-authentication conditions
 if (( difference > 1440 && difference < 1446 )); then
     auth_time=$(date -d "@$(( (expires_at / 1000) ))" '+%Y-%m-%d %H:%M:%S')
-    message="⏳ ${nodename} humanode (${server_ip}) will require re-authentication in 24 hours at ${auth_time}. Please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
+    
+    # Convert auth_time to Turkey time
+    turkey_time=$(TZ="Europe/Istanbul" date -d "$auth_time" '+%Y-%m-%d %H:%M:%S')
+    
+    # Get the day of the week
+    day_of_week=$(TZ="Europe/Istanbul" date -d "$auth_time" '+%A')
+
+    message="⏳ ${nodename} humanode (${server_ip}) will require re-authentication in 24 hours at ${turkey_time} (${day_of_week}). Please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
 elif ! pgrep -x "humanode-peer" > /dev/null; then
     message="🚨 Server ${nodename} (${server_ip}) process humanode-peer has been stopped ${telegram_user_tag}"
 else
