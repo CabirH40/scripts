@@ -1,6 +1,4 @@
-#!/bin/bash
 
-# تفاصيل بوت تيليجرام
 telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
 telegram_group='-1002175706144'
 telegram_user_tag="@CabirH2000 @testnetsever"
