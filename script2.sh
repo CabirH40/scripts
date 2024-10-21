@@ -1,6 +1,6 @@
 #!/bin/bash
 telegram_token='7159634730:AAEi5IMJhkV9iWzVLO3bEjz5nPl3ZN-V08k'
-telegram_group='-4270399214'
+telegram_group=''
 telegram_user_tag="@CabirH2000 @testnetsever"
 process_name="humanode-peer"
 workspace_file="$HOME/.humanode/workspaces/default/workspace.json"
