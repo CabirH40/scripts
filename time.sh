@@ -12,16 +12,25 @@ auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url -
 server_ip=$(curl -s https://api.ipify.org)
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
-current_time_istanbul=$(curl -s "http://worldtimeapi.org/api/timezone/Europe/Istanbul" | jq '.unixtime')
+# التوقيت الحالي من النظام
+current_time=$(date +%s)
 
+# جلب وقت انتهاء العملية من JSON
 expires_at=$(curl -s http://127.0.0.1:9933 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
 
+# تحويل expires_at إلى ثوانٍ
 expires_at_seconds=$((expires_at / 1000))
 
-difference=$(( expires_at_seconds - current_time_istanbul ))
+# حساب الفرق الزمني
+difference=$(( expires_at_seconds - current_time ))
+
+# حساب الأيام، الساعات، والدقائق المتبقية
 remaining_days=$(( difference / 86400 ))
 remaining_hours=$(( (difference % 86400) / 3600 ))
 remaining_minutes=$(( (difference % 3600) / 60 ))
+
+# صيغة الوقت المستهدف
+target_time=$(TZ="Europe/Istanbul" date -d "@${expires_at_seconds}" "+%A %H:%M")
 
 if ! pgrep -x "$process_name" > /dev/null; then
   message="🚨Server ${nodename} (${server_ip}) process ${process_name} has been stopped ${telegram_user_tag}"
@@ -31,12 +40,7 @@ else
   if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == "$(echo '"inactive"' | tr '[:upper:]' '[:lower:]')" ]; then
     message="🚨${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
   else
-    current_timestamp=$(date +%s)
-
-    difference=$(( expires_at_seconds - current_timestamp ))
-
     if (( difference <= 86400 )); then # تحقق إذا كان الفرق أقل أو يساوي 24 ساعة
-      target_time=$(TZ="Europe/Istanbul" date -d "@$expires_at_seconds" "+%A %H:%M")
       message="🔴${nodename} humanode (${server_ip}) will be deactivated at ${target_time} (in ${remaining_days} days, ${remaining_hours} hours, ${remaining_minutes} minutes), please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
     else
       message="NULL" # إذا لم يتحقق الشرط، لا يتم إرسال أي رسالة
