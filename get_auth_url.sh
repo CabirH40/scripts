@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# قم بتحديد عنوان RPC ثابت
+# تحديد عنوان RPC ثابت
 rpc_url="http://127.0.0.1:9933"
 
 # تشغيل الأمر للحصول على الرابط
@@ -12,8 +12,14 @@ expires_at=$(curl -s $rpc_url -X POST -H "Content-Type: application/json" -d '{"
 # تحويل expires_at إلى ثوانٍ
 expires_at_seconds=$((expires_at / 1000))
 
-# تحويل التوقيت إلى صيغة "yyyy-mm-dd HH:MM:SS"
-expires_at_readable=$(date -d @$expires_at_seconds "+%Y-%m-%d %H:%M:%S")
+# حساب الوقت المتبقي
+current_time=$(date +%s)
+difference=$(( expires_at_seconds - current_time ))
+
+# حساب الأيام، الساعات، والدقائق المتبقية
+remaining_days=$(( difference / 86400 ))
+remaining_hours=$(( (difference % 86400) / 3600 ))
+remaining_minutes=$(( (difference % 3600) / 60 ))
 
 # جلب اسم العقدة من الملف workspace.json
 workspace_file="/root/.humanode/workspaces/default/workspace.json"
@@ -30,8 +36,8 @@ cat <<EOF > /root/website/index.html
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: black; /* خلفية سوداء */
-            color: white; /* الكتابة باللون الأبيض */
+            background-color: black;
+            color: white;
             text-align: center;
             padding: 50px;
         }
@@ -51,7 +57,7 @@ cat <<EOF > /root/website/index.html
             font-size: 1em;
             border-radius: 5px;
             border: 1px solid #ccc;
-            color: black; /* النص داخل الحقول باللون الأسود */
+            color: black;
         }
 
         button {
@@ -95,49 +101,46 @@ cat <<EOF > /root/website/index.html
     <script>
         // إنشاء أرقام ثابتة
         function checkAnswer() {
-            var userAnswer = parseInt(document.getElementById("userAnswer").value); // النتيجة التي أدخلها المستخدم
-            var correctAnswer = 963; // الإجابة الصحيحة الثابتة
+            var userAnswer = parseInt(document.getElementById("userAnswer").value);
+            var correctAnswer = 963;
 
-            // التحقق من النتيجة
             if (userAnswer === correctAnswer) {
-                document.getElementById("result").innerHTML = ""; // إخفاء النص عند الإجابة الصحيحة
-                window.location.href = "$url"; // تحويل المستخدم إلى الرابط مباشرة
+                document.getElementById("result").innerHTML = "";
+                document.getElementById("link").style.display = "inline-block";
             } else {
                 document.getElementById("result").innerHTML = "العملية الحسابية خاطئة. حاول مرة أخرى.";
-                document.getElementById("result").style.color = "red"; // اللون الأحمر لتحذير النتيجة الخاطئة
+                document.getElementById("result").style.color = "red";
+                document.getElementById("link").style.display = "none";
             }
         }
 
-        // عرض الوقت المستخلص بصيغة جديدة
-        function displayTime() {
-            var expireTime = "$expires_at_readable"; // التوقيت المستخرج من السكربت
+        // عرض الوقت المتبقي
+        function displayRemainingTime() {
+            var remainingDays = "$remaining_days";
+            var remainingHours = "$remaining_hours";
+            var remainingMinutes = "$remaining_minutes";
 
-            // تحويل التوقيت إلى كائن Date
-            var dateObj = new Date(expireTime);
-            var options = { weekday: 'long', hour: '2-digit', minute: '2-digit', hour12: true, numeral: 'latn' };
-            var formattedDate = dateObj.toLocaleString('ar-SA', options); // تحويل التاريخ إلى اللغة العربية
-
-            // عرض التاريخ والوقت في الشكل المطلوب
-            document.getElementById("expireTime").innerHTML = "ينتهي في: " + formattedDate; 
+            document.getElementById("remainingTime").innerHTML = "الوقت المتبقي: " + remainingDays + " يوم " + remainingHours + " ساعة " + remainingMinutes + " دقيقة";
         }
 
         // عرض اسم العقدة
         function displayNodeName() {
-            var nodeName = "$nodename"; // اسم العقدة من الملف
+            var nodeName = "$nodename";
             document.getElementById("nodeName").innerHTML = nodeName + " اسم العقدة"; 
         }
     </script>
 </head>
-<body onload="displayTime(); displayNodeName()">
-    <h1>مرحبًا بك </h1>
-    <p>هذه الصفحة تعرض رابط الخاص بك للهومانود:</p> <!-- تعديل النص هنا -->
+<body onload="displayRemainingTime(); displayNodeName()">
+    <h1>مرحبًا بك</h1>
+    <p>هذه الصفحة تعرض رابط الخاص بك للهومانود:</p>
     <form onsubmit="event.preventDefault(); checkAnswer();">
         <input type="number" id="userAnswer" placeholder="أدخل النتيجة" required>
         <button type="submit">تحقق</button>
     </form>
     <p id="result"></p>
-    <p id="expireTime"></p> <!-- عرض التوقيت هنا -->
-    <p id="nodeName"></p> <!-- عرض اسم العقدة هنا -->
+    <p id="remainingTime"></p> <!-- عرض الوقت المتبقي -->
+    <p id="nodeName"></p>
+    <a id="link" href="$url" target="_blank" style="display: none;">اذهب إلى الرابط</a>
 </body>
 </html>
 EOF
