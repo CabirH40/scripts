@@ -7,7 +7,7 @@ process_name="humanode-peer"
 workspace_file="/root/.humanode/workspaces/default/workspace.json" 
 nodename=$(jq -r '.nodename' $workspace_file)
 
-auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
+auth_url="$(curl -s https://api.ipify.org):2025"
 
 server_ip=$(curl -s https://api.ipify.org)
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
