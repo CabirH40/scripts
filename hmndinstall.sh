@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # مسار العمل
-WORKSPACE_PATH=~/.humanode/workspaces/default
+WORKSPACE_PATH=/root/.humanode/workspaces/default
+HUMANODE_PEER_PATH=$WORKSPACE_PATH/humanode-peer  # المسار الكامل للـ humanode-peer
 
 # التحقق من وجود المحفظة
 if [ -f "$WORKSPACE_PATH/key" ]; then
@@ -14,8 +15,11 @@ if [ -f "$WORKSPACE_PATH/key" ]; then
     echo "أدخل اسم النود الخاص بك:"
     read nodename
 
+    # الانتقال إلى المسار المطلوب
+    cd $WORKSPACE_PATH
+
     # تنفيذ الأمر الخاص بإدخال المفتاح
-    ./humanode-peer key insert --key-type kbai --scheme sr25519 --suri "$mnemonic" --base-path substrate-data --chain chainspec.json
+    $HUMANODE_PEER_PATH key insert --key-type kbai --scheme sr25519 --suri "$mnemonic" --base-path substrate-data --chain chainspec.json
 
     # فتح الملف workspace.json وتعديله
     nano $WORKSPACE_PATH/workspace.json
@@ -40,7 +44,11 @@ if [ -f "$WORKSPACE_PATH/key" ]; then
 else
   # إذا لم تكن هناك محفظة، يقوم بتوليد محفظة جديدة
   echo "ليس لديك محفظة، سيتم توليد واحدة جديدة."
-  output=$(./humanode-peer key generate)
+
+  # الانتقال إلى المسار المطلوب
+  cd $WORKSPACE_PATH
+
+  output=$($HUMANODE_PEER_PATH key generate)
 
   # استخراج الـ 12 كلمة من مخرجات الأمر
   mnemonic=$(echo "$output" | grep -oP 'Secret phrase:\s+\K.*')
@@ -52,7 +60,7 @@ else
   echo "هذه هي الكلمات الـ 12 الخاصة بك: $mnemonic"
 
   # تنفيذ الخطوات السابقة باستخدام الكلمات الجديدة
-  ./humanode-peer key insert --key-type kbai --scheme sr25519 --suri "$mnemonic" --base-path substrate-data --chain chainspec.json
+  $HUMANODE_PEER_PATH key insert --key-type kbai --scheme sr25519 --suri "$mnemonic" --base-path substrate-data --chain chainspec.json
   nano $WORKSPACE_PATH/workspace.json
 
   sed -i "s/\"mnemonicInserted\": false/\"mnemonicInserted\": true/" $WORKSPACE_PATH/workspace.json
