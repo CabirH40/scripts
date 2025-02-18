@@ -18,6 +18,10 @@ EOF'
 
 echo "إعادة تشغيل Docker لتطبيق الإعدادات ..."
 sudo systemctl restart docker
+# --- الخطوة 0.1: تنزيل الصور المطلوبة ---
+echo "جاري تنزيل صور Docker ..."
+sudo docker pull typesense/typesense:26.0
+sudo docker pull oceanprotocol/ocean-node:latest
 
 echo "تعديل إعدادات DNS ..."
 sudo bash -c 'cat > /etc/resolv.conf <<EOF
@@ -102,6 +106,7 @@ for key in "${keys[@]}"; do
     # تعديل أسماء الكونتينرات والمنافذ في docker-compose.yml
     sed -i "s/container_name: ocean-node/container_name: ocean-node-$i/" docker-compose.yml
     sed -i "s/container_name: typesense/container_name: typesense-$i/" docker-compose.yml
+    sed -i "s/pull_policy: always/pull_policy: never/" docker-compose.yml
     sed -i "s/8108:8108/$((10000 + j)):8108/" docker-compose.yml
 
     # تعديل البورتات بشكل تسلسلي
