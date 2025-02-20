@@ -107,6 +107,7 @@ for key in "${keys[@]}"; do
     sed -i "s/container_name: ocean-node/container_name: ocean-node-$i/" docker-compose.yml
     sed -i "s/container_name: typesense/container_name: typesense-$i/" docker-compose.yml
     sed -i "s/pull_policy: always/pull_policy: never/" docker-compose.yml
+    sed -i '/restart: on-failure/a \ \ \ \ init: true' docker-compose.yml
     sed -i "s/8108:8108/$((10000 + j)):8108/" docker-compose.yml
 
     # تعديل البورتات بشكل تسلسلي
