@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # تحديد عنوان RPC ثابت
-rpc_url="http://127.0.0.1:9933"
+rpc_url="http://127.0.0.1:9944"
 
 # تشغيل الأمر للحصول على الرابط
 url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
