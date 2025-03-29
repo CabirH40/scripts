@@ -111,6 +111,30 @@ def reset_alert_5_sent():
     alert_5_sent = False
     print("تم إعادة تعيين alert_5_sent.")
 
+# وظيفة لجلب رقم الهاتف باستخدام curl
+def fetch_phone_number(nodename):
+    try:
+        response = requests.get(f"http://152.53.84.199/read_csv.php?node={nodename}")
+        if response.status_code == 200:
+            data = response.json()
+            if "phone" in data:
+                return data["phone"]
+            else:
+                print(f"❌ خطأ: {data.get('error', 'لم يتم العثور على الرقم')}")
+        else:
+            print("❌ فشل في الاتصال بالسيرفر")
+    except Exception as e:
+        print(f"حدث خطأ أثناء جلب البيانات: {e}")
+    return None
+
+# جلب الرقم للنود
+phone_number = fetch_phone_number(nodename)
+if phone_number:
+    phone = phone_number  # تحديث الرقم في حالة نجاح الجلب
+else:
+    print("سيتم استخدام الرقم الافتراضي.")
+
+# بدء العملية الرئيسية
 while True:
     status_response = requests.post(
         "http://127.0.0.1:9944",
