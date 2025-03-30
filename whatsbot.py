@@ -10,7 +10,7 @@ from datetime import datetime
 # تفاصيل الملف
 workspace_file = "/root/.humanode/workspaces/default/workspace.json"
 
-server_ip = requests.get("https://ifconfig.me").text.strip()
+server_ip = requests.get("https://ifconfig.me").text
 # جلب الرابط من الأداة
 auth_url = os.popen("/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json").read().strip()
 
