@@ -50,6 +50,7 @@ def check_log_for_completed():
             update_phone_if_needed()
             print("عملية التوثيق تمت بنجاح!")
             send_message_to_server(f"{nodename}تمت عملية التوثيق بنجاح نراك بعد أسبوع", phone)  # تم تعديل الاستدعاء هنا
+            os.popen("> /root/.humanode/workspaces/default/node/logs.txt")
             alert_sent = True
             schedule.every().day.at("04:00").do(reset_alert_sent)
             schedule.every().day.at("04:00").do(reset_alert_30_sent)
