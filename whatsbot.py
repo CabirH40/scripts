@@ -31,6 +31,7 @@ log_file_path = "/root/.humanode/workspaces/default/node/logs.txt"
 remote_ip = "152.53.84.199"
 remote_user = "root"
 remote_password = "4Y8z1eblEJ"
+#update_phone_if_needed()
 remote_file_path = "/root/whatsapp-bot/what.txt"
 phone = 905312395611
 
@@ -43,6 +44,7 @@ def check_log_for_completed():
         with open(log_file_path, 'r') as log_file:
             content = log_file.read()
         if "authentication complete" in content:
+            update_phone_if_needed()
             print("عملية التوثيق تمت بنجاح!")
             send_message_to_server(f"{nodename}تمت عملية التوثيق بنجاح نراك بعد أسبوع", phone)  # تم تعديل الاستدعاء هنا
             alert_sent = True
@@ -126,17 +128,17 @@ def fetch_phone_number(nodename):
     return None
 
 # تحديث الرقم بشكل دائم عند تحقق الشرط
+# تحديث الرقم بشكل دائم
 def update_phone_if_needed():
     global phone
-    # تحقق من الشرط لتحديث الرقم
-    if 0 < difference < 1810 and not alert_30_sent:
-        print("تحقق الشرط لتحديث الرقم...")
-        phone_number = fetch_phone_number(nodename)
-        if phone_number:
-            phone = phone_number  # تحديث الرقم في حالة نجاح الجلب
-            print(f"تم تحديث الرقم إلى: {phone}")
-        else:
-            print("لم يتم تحديث الرقم باستخدام القيمة الافتراضية.")
+
+    # جلب الرقم وتحديثه بشكل دائم
+    phone_number = fetch_phone_number(nodename)
+    if phone_number:
+        phone = phone_number  # تحديث الرقم في حالة نجاح الجلب
+        print(f"تم تحديث الرقم إلى: {phone}")
+    else:
+        print("لم يتم تحديث الرقم باستخدام القيمة الافتراضية.")
 
 # بدء العملية الرئيسية
 while True:
@@ -166,36 +168,17 @@ while True:
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
         message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
         alert_5_sent = True
-
+        update_phone_if_needed
     elif 0 < difference < 14400 and not alert_4_sent:  # 14400 seconds = 4 hours
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
         message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
         alert_4_sent = True
         print(f"تم إرسال التنبيه للـ 4 ساعات ({remaining_time})")
-
+        update_phone_if_needed
     if message:
         send_message_to_server(message, phone)
 
     check_log_for_completed()
     schedule.run_pending()
     time.sleep(5)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
