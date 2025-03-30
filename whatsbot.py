@@ -52,10 +52,10 @@ def check_log_for_completed():
             send_message_to_server(f"{nodename}تمت عملية التوثيق بنجاح نراك بعد أسبوع", phone)  # تم تعديل الاستدعاء هنا
             os.popen("> /root/.humanode/workspaces/default/node/logs.txt")
             alert_sent = True
-            schedule.every().day.at("04:00").do(reset_alert_sent)
-            schedule.every().day.at("04:00").do(reset_alert_30_sent)
-            schedule.every().day.at("04:00").do(reset_alert_5_sent)
-            schedule.every().day.at("04:00").do(reset_alert_4_sent)  # إعادة تعيين alert_4_sent عند الساعة 4 صباحًا
+            schedule.every().day.at("02:00").do(reset_alert_sent)
+            schedule.every().day.at("02:00").do(reset_alert_30_sent)
+            schedule.every().day.at("02:00").do(reset_alert_5_sent)
+            schedule.every().day.at("02:00").do(reset_alert_4_sent)  # إعادة تعيين alert_4_sent عند الساعة 4 صباحًا
     except Exception as e:
         print(f"حدث خطأ أثناء قراءة الملف: {e}")
 
