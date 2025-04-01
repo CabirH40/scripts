@@ -51,7 +51,7 @@ def get_status():
                 data=json.dumps({"jsonrpc": "2.0", "method": "bioauth_status", "params": [], "id": 1})
             )
             
-            print("🔍 استجابة الخادم:", status_response.text)
+            
             
             # تحويل الاستجابة إلى JSON
             try:
@@ -77,7 +77,7 @@ def get_status():
         except (requests.RequestException, json.JSONDecodeError) as e:
             print(f"❌ خطأ أثناء جلب البيانات: {e}. إعادة المحاولة...")
 
-        time.sleep(20)  # الانتظار قبل إعادة المحاولة
+        time.sleep(19)  # الانتظار قبل إعادة المحاولة
 
 expires_at = get_status()
 
