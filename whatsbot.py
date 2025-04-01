@@ -77,7 +77,7 @@ def get_status():
         except (requests.RequestException, json.JSONDecodeError) as e:
             print(f"❌ خطأ أثناء جلب البيانات: {e}. إعادة المحاولة...")
 
-        time.sleep(5)  # الانتظار قبل إعادة المحاولة
+        time.sleep(20)  # الانتظار قبل إعادة المحاولة
 
 expires_at = get_status()
 
@@ -145,6 +145,7 @@ def send_message_to_server(message, phone):
             remote_file.write(new_content)
 
         # إغلاق الاتصال
+        time.sleep(5)
         sftp.close()
         ssh_client.close()
 
@@ -208,19 +209,19 @@ while True:
     message = None
     if 0 < difference < 1810 and not alert_30_sent:  # 1800 seconds = 30 minutes
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
-        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url})"
+        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) {auth_url}"
         alert_30_sent = True
         print(f"تم إرسال التنبيه للـ 30 دقيقة ({remaining_time})")
         update_phone_if_needed()
 
     elif 0 < difference < 310 and not alert_5_sent:  # 300 seconds = 5 minutes
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
-        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
+        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) {auth_url} "
         alert_5_sent = True
         update_phone_if_needed()
     elif 0 < difference < 14400 and not alert_4_sent:  # 14400 seconds = 4 hours
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
-        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
+        message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) {auth_url} "
         alert_4_sent = True
         print(f"تم إرسال التنبيه للـ 4 ساعات ({remaining_time})")
         update_phone_if_needed()
@@ -230,4 +231,4 @@ while True:
 
     check_log_for_completed()
     schedule.run_pending()
-    time.sleep(5)
+    time.sleep(20)
