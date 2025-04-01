@@ -217,13 +217,13 @@ while True:
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
         message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
         alert_5_sent = True
-        update_phone_if_needed
+        update_phone_if_needed()
     elif 0 < difference < 14400 and not alert_4_sent:  # 14400 seconds = 4 hours
         remaining_time = datetime.fromtimestamp(expires_at).astimezone(pytz.timezone("Europe/Istanbul")).strftime("%H:%M")
         message = f" {nodename} ({server_ip}) ({remaining_time} يجب التصوير في هذه الساعة ) ({auth_url}) "
         alert_4_sent = True
         print(f"تم إرسال التنبيه للـ 4 ساعات ({remaining_time})")
-        update_phone_if_needed
+        update_phone_if_needed()
 
     if message:
         send_message_to_server(message, phone)
