@@ -24,6 +24,8 @@ remote_password = "4Y8z1eblEJ"  # مرئية كما طلبت
 
 # الحالة العامة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
+alert_missed_count = 0
+missed_alert_last_time = 0
 phone = "905312395611"
 last_expires_at = 0  # لتتبع صلاحية التوثيق
 
@@ -58,26 +60,28 @@ def get_status():
                 data=json.dumps({"jsonrpc": "2.0", "method": "bioauth_status", "params": [], "id": 1})
             )
             data = res.json()
-            expires_at = data.get("result", {}).get("Active", {}).get("expires_at", 0)
-            if expires_at:
-                return int(expires_at / 1000)
+            result = data.get("result", {})
+            if "Active" in result:
+                expires_at = result["Active"].get("expires_at", 0)
+                return int(expires_at / 1000), "Active"
+            elif "Inactive" in result:
+                return 0, "Inactive"
         except:
-            pass
-        logging.warning("فشل في جلب حالة التوثيق. إعادة المحاولة...")
-        time.sleep(19)
+            logging.warning("فشل في جلب حالة التوثيق. إعادة المحاولة...")
+            time.sleep(19)
 
 def reset_alerts():
-    global alert_sent, alert_30_sent, alert_5_sent, alert_4_sent
+    global alert_sent, alert_30_sent, alert_5_sent, alert_4_sent, alert_missed_count, missed_alert_last_time
     alert_sent = alert_30_sent = alert_5_sent = alert_4_sent = False
+    alert_missed_count = 0
+    missed_alert_last_time = 0
     logging.info("✅ تم إعادة تعيين جميع التنبيهات")
 
 schedule.every().day.at("02:00").do(reset_alerts)
 
 def send_message_to_server(message, phone):
     try:
-        tz = pytz.timezone("Europe/Istanbul")
-        current_time = datetime.now(tz).strftime("%I:%M %p")
-        full_message = f"{phone} {message} 🕒 {current_time}\n"
+        full_message = f"{phone} {message}"
 
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -91,7 +95,7 @@ def send_message_to_server(message, phone):
             old_content = ""
 
         with sftp.open(remote_file_path, 'w') as f:
-            f.write(full_message + old_content)
+            f.write(full_message + "\n" + old_content)
 
         sftp.close()
         ssh.close()
@@ -104,7 +108,7 @@ def check_log_for_completed():
     if alert_sent:
         return
     try:
-        lines = log_file_path.read_text().splitlines()
+        lines = log_file_path.read_text(encoding='utf-8', errors='ignore').splitlines()
         for i in range(len(lines) - 1):
             if "Bioauth flow - authentication complete" in lines[i] and "auth_ticket=" in lines[i + 1]:
                 update_phone_if_needed()
@@ -133,20 +137,20 @@ def update_phone_if_needed():
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
-    return (
-        f"🚨 نود: {nodename} 🖥️\n"
-        f"🌐 IP: {server_ip}\n"
-        f"⏳ تبقّى: {minutes} دقيقة على انتهاء التوثيق\n"
-        f"🗓️ الساعة: {time_str}\n"
-        f"🔗 رابط التوثيق: {auth_url}"
-    )
+
+    if minutes >= 60:
+        label = f"{int(minutes // 60)} ساعات"
+    else:
+        label = f"{int(minutes)} دقيقة"
+
+    return f"{nodename} - تبقّى {label} - ينتهي عند: {time_str} - {auth_url}"
 
 nodename = get_nodename()
 auth_url = get_auth_url()
 
 while True:
     current_time = int(time.time())
-    expires_at = get_status()
+    expires_at, status = get_status()
     diff = expires_at - current_time
 
     if expires_at != last_expires_at:
@@ -169,6 +173,13 @@ while True:
         msg = format_message(240, expires_at)
         alert_4_sent = True
         update_phone_if_needed()
+
+    # تنبيهات التأخر عن التوثيق عند التحول إلى Inactive
+    if status == "Inactive" and not alert_sent and alert_missed_count < 3:
+        if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
+            send_message_to_server(f"⏰ {nodename} - لقد تم تخطي الوقت المحدد، الرجاء التصوير فوراً", phone)
+            alert_missed_count += 1
+            missed_alert_last_time = current_time
 
     if msg:
         send_message_to_server(msg, phone)
