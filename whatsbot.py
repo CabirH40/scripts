@@ -14,7 +14,6 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # المسارات والثوابت
 workspace_file = Path("/root/.humanode/workspaces/default/workspace.json")
-log_file_path = Path("/root/.humanode/workspaces/default/node/logs.txt")
 remote_file_path = "/root/whatsapp-bot/what.txt"
 
 # بيانات السيرفر البعيد
@@ -28,6 +27,8 @@ alert_missed_count = 0
 missed_alert_last_time = 0
 phone = "905312395611"
 last_expires_at = 0  # لتتبع صلاحية التوثيق
+last_status = None  # لتتبع آخر حالة نشطة / غير نشطة
+last_alert_time = 0  # تأخير بين التنبيهات
 
 server_ip = requests.get("https://ifconfig.me").text
 
@@ -103,22 +104,6 @@ def send_message_to_server(message, phone):
     except Exception as e:
         logging.error(f"خطأ في إرسال الرسالة عبر SFTP: {e}")
 
-def check_log_for_completed():
-    global alert_sent
-    if alert_sent:
-        return
-    try:
-        lines = log_file_path.read_text(encoding='utf-8', errors='ignore').splitlines()
-        for i in range(len(lines) - 1):
-            if "Bioauth flow - authentication complete" in lines[i] and "auth_ticket=" in lines[i + 1]:
-                update_phone_if_needed()
-                send_message_to_server(f"🎉 {nodename} ✅ تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.", phone)
-                log_file_path.write_text("")
-                alert_sent = True
-                break
-    except Exception as e:
-        logging.error(f"خطأ في فحص السجل: {e}")
-
 def fetch_phone_number(nodename):
     try:
         res = requests.get(f"http://152.53.84.199/read_csv.php?node={nodename}")
@@ -147,6 +132,7 @@ def format_message(minutes, expires_at):
 
 nodename = get_nodename()
 auth_url = get_auth_url()
+time_started = time.time()
 
 while True:
     current_time = int(time.time())
@@ -159,20 +145,25 @@ while True:
 
     msg = None
 
-    if 0 < diff < 310 and not alert_5_sent:
-        msg = format_message(5, expires_at)
-        alert_5_sent = True
-        update_phone_if_needed()
+    # شرط لتأخير التنبيهات بين بعضها البعض بـ 20 ثانية
+    if time.time() - last_alert_time > 20:
+        if 0 < diff < 310 and not alert_5_sent:
+            msg = format_message(5, expires_at)
+            alert_5_sent = True
+            update_phone_if_needed()
+            last_alert_time = time.time()
 
-    if 310 <= diff < 1810 and not alert_30_sent:
-        msg = format_message(30, expires_at)
-        alert_30_sent = True
-        update_phone_if_needed()
+        if 310 <= diff < 1810 and not alert_30_sent:
+            msg = format_message(30, expires_at)
+            alert_30_sent = True
+            update_phone_if_needed()
+            last_alert_time = time.time()
 
-    if 1810 <= diff < 14400 and not alert_4_sent:
-        msg = format_message(240, expires_at)
-        alert_4_sent = True
-        update_phone_if_needed()
+        if 1810 <= diff < 14400 and not alert_4_sent:
+            msg = format_message(240, expires_at)
+            alert_4_sent = True
+            update_phone_if_needed()
+            last_alert_time = time.time()
 
     # تنبيهات التأخر عن التوثيق عند التحول إلى Inactive
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
@@ -181,9 +172,16 @@ while True:
             alert_missed_count += 1
             missed_alert_last_time = current_time
 
+    # عند التغيير من Inactive إلى Active
+    if last_status == "Inactive" and status == "Active":
+        update_phone_if_needed()
+        send_message_to_server(f"🎉 {nodename} ✅ تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.", phone)
+        alert_sent = True
+
+    last_status = status  # تحديث الحالة الأخيرة
+
     if msg:
         send_message_to_server(msg, phone)
 
-    check_log_for_completed()
     schedule.run_pending()
     time.sleep(20)
