@@ -168,7 +168,7 @@ while True:
     # تنبيهات التأخر عن التوثيق عند التحول إلى Inactive
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
-            send_message_to_server(f"⏰ {nodename} - لقد تم تخطي الوقت المحدد، الرجاء التصوير فوراً", phone)
+            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - لقد تم تخطي الوقت المحدد، الرجاء التصوير فوراً", phone)
             alert_missed_count += 1
             missed_alert_last_time = current_time
 
