@@ -26,22 +26,27 @@ alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
 alert_missed_count = 0
 missed_alert_last_time = 0
 phone = "905312395611"
-last_expires_at = 0  # لتتبع صلاحية التوثيق
-last_status = None  # لتتبع آخر حالة نشطة / غير نشطة
-last_alert_time = 0  # تأخير بين التنبيهات
+last_expires_at = 0
+last_status = None
+last_alert_time = 0
 
+# الحصول على IP الحالي للسيرفر
 server_ip = requests.get("https://ifconfig.me").text
+
 
 def get_auth_url():
     while True:
         try:
-            result = os.popen("/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json").read().strip()
+            result = os.popen(
+                "/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json"
+            ).read().strip()
             if result:
                 logging.info(f"✅ auth_url: {result}")
                 return result
         except Exception as e:
             logging.warning(f"فشل جلب auth_url: {e}")
         time.sleep(5)
+
 
 def get_nodename():
     try:
@@ -51,6 +56,7 @@ def get_nodename():
     except Exception as e:
         logging.error(f"خطأ في قراءة nodename: {e}")
         return "Unknown"
+
 
 def get_status():
     while True:
@@ -71,6 +77,7 @@ def get_status():
             logging.warning("فشل في جلب حالة التوثيق. إعادة المحاولة...")
             time.sleep(19)
 
+
 def reset_alerts():
     global alert_sent, alert_30_sent, alert_5_sent, alert_4_sent, alert_missed_count, missed_alert_last_time
     alert_sent = alert_30_sent = alert_5_sent = alert_4_sent = False
@@ -78,7 +85,9 @@ def reset_alerts():
     missed_alert_last_time = 0
     logging.info("✅ تم إعادة تعيين جميع التنبيهات")
 
+
 schedule.every().day.at("02:00").do(reset_alerts)
+
 
 def send_message_to_server(message, phone):
     try:
@@ -104,6 +113,7 @@ def send_message_to_server(message, phone):
     except Exception as e:
         logging.error(f"خطأ في إرسال الرسالة عبر SFTP: {e}")
 
+
 def fetch_phone_number(nodename):
     try:
         res = requests.get(f"http://152.53.84.199/read_csv.php?node={nodename}")
@@ -112,12 +122,14 @@ def fetch_phone_number(nodename):
     except:
         return None
 
+
 def update_phone_if_needed():
     global phone
     new_phone = fetch_phone_number(nodename)
     if new_phone:
         phone = new_phone
         logging.info(f"📞 تم تحديث رقم الهاتف: {phone}")
+
 
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
@@ -130,24 +142,21 @@ def format_message(minutes, expires_at):
 
     return f"{nodename} - تبقّى {label} - ينتهي عند: {time_str} - {auth_url}"
 
-nodename = get_nodename()
-auth_url = get_auth_url()
-time_started = time.time()
 
-while True:
+def handle_status_and_alerts():
+    global last_expires_at, alert_5_sent, alert_30_sent, alert_4_sent, alert_sent, last_alert_time, last_status, alert_missed_count, missed_alert_last_time
+
     current_time = int(time.time())
     expires_at, status = get_status()
     diff = expires_at - current_time
+    msg = None
 
     if expires_at != last_expires_at:
         reset_alerts()
         last_expires_at = expires_at
 
-    msg = None
-
-    # شرط لتأخير التنبيهات بين بعضها البعض بـ 20 ثانية
     if time.time() - last_alert_time > 20:
-        if 0 < diff < 310 and not alert_5_sent:
+        if 0 <= diff < 310 and not alert_5_sent:
             msg = format_message(5, expires_at)
             alert_5_sent = True
             update_phone_if_needed()
@@ -159,29 +168,39 @@ while True:
             update_phone_if_needed()
             last_alert_time = time.time()
 
-        if 1810 <= diff < 14400 and not alert_4_sent:
+        if 1810 <= diff < 14000 and not alert_4_sent:
             msg = format_message(240, expires_at)
             alert_4_sent = True
             update_phone_if_needed()
             last_alert_time = time.time()
 
-    # تنبيهات التأخر عن التوثيق عند التحول إلى Inactive
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
-            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - لقد تم تخطي الوقت المحدد، الرجاء التصوير فوراً", phone)
+            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - لقد تم تخطي الوقت المحدد، الرجاء التصوير مرة اخرى", phone)
             alert_missed_count += 1
+            update_phone_if_needed()
             missed_alert_last_time = current_time
 
-    # عند التغيير من Inactive إلى Active
     if last_status == "Inactive" and status == "Active":
         update_phone_if_needed()
         send_message_to_server(f"🎉 {nodename} ✅ تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.", phone)
         alert_sent = True
 
-    last_status = status  # تحديث الحالة الأخيرة
+    last_status = status
 
     if msg:
         send_message_to_server(msg, phone)
+    time.sleep(10)
 
-    schedule.run_pending()
-    time.sleep(20)
+def main_loop():
+    while True:
+        handle_status_and_alerts()
+        schedule.run_pending()
+        time.sleep(20)
+
+
+if __name__ == "__main__":
+    nodename = get_nodename()
+    auth_url = get_auth_url()
+    time_started = time.time()
+    main_loop()
