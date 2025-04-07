@@ -2,45 +2,41 @@
 
 # Telegram bot details
 telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
-telegram_groups=(-1002175706144 -1001234567890) # معرفات المجموعات
+telegram_group='-1002175706144'
 telegram_user_tag="@CabirH2000 @testnetsever"
+workspace_file="/root/.humanode/workspaces/default/workspace.json"
 process_name="humanode-peer"
-workspace_file="/root/.humanode/workspaces/default/workspace.json" 
 nodename=$(jq -r '.nodename' $workspace_file)
-
-# Execute command to fetch authentication URL
-auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
-
-# Script starts here
 server_ip=$(curl -s https://api.ipify.org)
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
-# Check the status of the process
+# Check if humanode-peer is running before attempting status
 if ! pgrep -x "$process_name" > /dev/null; then
-  message="🚨Server ${nodename} (${server_ip}) process ${process_name} has been stopped ${telegram_user_tag}"
-else
-  status=$(curl -s http://127.0.0.1:9933 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
+    exit 0
+fi
 
-  if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == "$(echo '"inactive"' | tr '[:upper:]' '[:lower:]')" ]; then
+# Get auth URL and bioauth status
+auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
+status=$(curl -s http://127.0.0.1:9944 -X POST -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
+
+if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == '"inactive"' ]; then
     message="🚨${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
-  else
+else
     current_timestamp=$(date +%s)
-    expires_at=$(curl -s http://127.0.0.1:9933 -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
+    expires_at=$(curl -s http://127.0.0.1:9944 -X POST -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
     difference=$(( (expires_at / 1000 - current_timestamp) / 60 ))
 
     if (( difference > 25 && difference < 31 )); then
-      message=" ${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
+        message="🟡 ${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
     elif (( difference > 0 && difference < 6 )); then
-      message="🔴${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
+        message="🔴 ${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
     else
-      message="NULL"
+        message="NULL"
     fi
-  fi
 fi
 
-# Send message to all groups if there is any alert
 if [ "$message" != "NULL" ]; then
-  for telegram_group in "${telegram_groups[@]}"; do
     curl -X POST -H "Content-Type:multipart/form-data" -F chat_id=${telegram_group} -F text="${message}" ${telegram_bot}
-  done
 fi
