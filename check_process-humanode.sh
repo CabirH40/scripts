@@ -1,7 +1,7 @@
 #!/bin/bash
 
-telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
-telegram_group='-1002175706144'
+telegram_token='7487057135:AAGMsz0I2lFlwM_huwnw22LTg2gVvsdkvAs'
+telegram_group='-4766093448'
 telegram_user_tag="@CabirH2000 @testnetsever"
 workspace_file="/root/.humanode/workspaces/default/workspace.json"
 nodename=$(jq -r '.nodename' $workspace_file)
