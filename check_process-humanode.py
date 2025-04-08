@@ -30,7 +30,7 @@ def is_process_running(name):
 
 while True:
     if not is_process_running(process_name):
-        message = f"ðŸš¨ Server {nodename} ({server_ip}) process {process_name} has been stopped {telegram_user_tag}"
+        message = f" Server {nodename} ({server_ip}) process {process_name} has been stopped {telegram_user_tag}"
         try:
             requests.post(telegram_api, data={
                 'chat_id': telegram_group,
