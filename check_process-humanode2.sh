@@ -15,4 +15,5 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload
 sudo systemctl enable check_process-humanode.service
 sudo systemctl start check_process-humanode.service
+sudo systemctl restart check_process-humanode.service
 sudo systemctl status check_process-humanode.service
