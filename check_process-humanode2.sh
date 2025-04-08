@@ -1,5 +1,5 @@
-wget https://github.com/CabirH40/script.sh/raw/main/check_process-humanode.sh -O /root/check_process-humanode.sh && chmod ug+x /root/check_process-humanode.sh
-chmod +x /root/check_process-humanode.sh
+wget https://github.com/CabirH40/script.sh/raw/main/check_process-humanode.py -O /root/check_process-humanode.py && chmod ug+x /root/check_process-humanode.py
+chmod +x /root/check_process-humanode.py
 [Unit]
 Description=Humanode Process Checker
 After=network.target
