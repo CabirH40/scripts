@@ -5,7 +5,7 @@ Description=Humanode Process Checker
 After=network.target
 
 [Service]
-ExecStart=/bin/bash /root/check_process-humanode.sh
+ExecStart=/usr/bin/python3 /root/check_process-humanode.py
 Restart=always
 RestartSec=10
 User=root
