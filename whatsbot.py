@@ -165,7 +165,7 @@ def handle_status_and_alerts():
             update_phone_if_needed()
             last_alert_time = time.time()
 
-        if 1810 <= diff < 7200 and not alert_4_sent:
+        if 1810 <= diff < 21600 and not alert_4_sent:
             msg = format_message(240, expires_at)
             alert_4_sent = True
             update_phone_if_needed()
