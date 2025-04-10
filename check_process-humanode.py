@@ -6,7 +6,7 @@ import subprocess
 import json
 
 telegram_token = '7487057135:AAGMsz0I2lFlwM_huwnw22LTg2gVvsdkvAs'
-telegram_group = '-4766093448'
+telegram_group = '-1002639328852'
 telegram_user_tag = '@CabirH2000 @testnetsever'
 workspace_file = '/root/.humanode/workspaces/default/workspace.json'
 process_name = 'humanode-peer'
