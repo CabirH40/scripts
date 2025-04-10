@@ -135,12 +135,9 @@ def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
 
-    if minutes >= 60:
-        label = f"{int(minutes // 60)} ساعات"
-    else:
-        label = f"{int(minutes)} دقيقة"
 
-    return f"{nodename} - تبقّى {label} - ينتهي عند: {time_str} - {auth_url}"
+
+    return f"{nodename}  - ينتهي عند: {time_str} - {auth_url}"
 
 
 def handle_status_and_alerts():
@@ -168,7 +165,7 @@ def handle_status_and_alerts():
             update_phone_if_needed()
             last_alert_time = time.time()
 
-        if 1810 <= diff < 3200 and not alert_4_sent:
+        if 1810 <= diff < 7200 and not alert_4_sent:
             msg = format_message(240, expires_at)
             alert_4_sent = True
             update_phone_if_needed()
