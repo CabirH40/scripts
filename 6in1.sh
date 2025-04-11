@@ -11,6 +11,7 @@ declare -A scripts=(
   [check_process-humanode2.sh]="https://github.com/CabirH40/script.sh/raw/main/check_process-humanode2.sh"
   [script.sh]="https://github.com/CabirH40/script.sh/raw/main/script2.sh"
   [get_auth_url.sh]="https://github.com/CabirH40/script.sh/raw/main/get_auth_url.sh"
+  [whatsbot2.sh]="https://github.com/CabirH40/script.sh/blob/main/whatsbot2.sh"
 )
 
 # تحميل وتفعيل وتشغيل السكربتات
