@@ -43,3 +43,4 @@ systemctl enable "$SERVICE_NAME"
 systemctl restart "$SERVICE_NAME"
 
 echo "✅ تم التثبيت وتشغيل الخدمة: $SERVICE_NAME"
+exit
