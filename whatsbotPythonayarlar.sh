@@ -33,7 +33,7 @@ for package in paramiko schedule requests pytz; do
 done
 
 echo "🎉 تم التحقق من جميع المتطلبات."
-
+exit
 # إفراغ ملف logs.txt
 > /root/.humanode/workspaces/default/node/logs.txt
 
