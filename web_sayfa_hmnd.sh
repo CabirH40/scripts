@@ -66,3 +66,4 @@ systemctl start http-server.service
 systemctl status http-server.service
 
 echo "Kurulum tamamlandı!"
+exit
