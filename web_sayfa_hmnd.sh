@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# تعريف المتغيرات
+SERVICE_NAME="http-server.service"
+SCRIPT_PATH="/root/get_auth_url.sh"
+
+# ✅ إذا الخدمة مثبتة والسكريبت موجود، لا تعمل شيء
+if systemctl is-enabled --quiet "$SERVICE_NAME" && [ -f "$SCRIPT_PATH" ]; then
+  echo "✅ الخدمة $SERVICE_NAME و $SCRIPT_PATH موجودة. لا حاجة للتثبيت، يتم التخطي."
+  exit 0
+fi
+
+echo "🧪 الخدمة غير موجودة أو السكربت ناقص. جاري التثبيت..."
 
 # get_auth_url.sh scriptini indir
 echo "get_auth_url.sh indiriliyor..."
