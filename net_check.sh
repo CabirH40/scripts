@@ -80,3 +80,4 @@ systemctl enable "$SERVICE_NAME"
 systemctl start "$SERVICE_NAME"
 
 echo "✅ تم تثبيت وتفعيل الخدمة $SERVICE_NAME بنجاح."
+exit
