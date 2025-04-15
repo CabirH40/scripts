@@ -39,8 +39,8 @@ EOF
 # 4. تفعيل وتشغيل الخدمة
 systemctl daemon-reexec
 systemctl daemon-reload
-systemctl enable "$SERVICE_NAME"
-systemctl restart "$SERVICE_NAME"
+systemctl enable whatsbot.service
+systemctl restart whatsbot.service
 
 echo "✅ تم التثبيت وتشغيل الخدمة: $SERVICE_NAME"
 exit
