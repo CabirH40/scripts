@@ -43,4 +43,5 @@ systemctl enable whatsbot.service
 systemctl restart whatsbot.service
 
 echo "✅ تم التثبيت وتشغيل الخدمة: $SERVICE_NAME"
+#sudo systemctl status whatsbot.service
 exit
