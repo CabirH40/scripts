@@ -30,6 +30,6 @@ echo "/root/swapfile swap swap defaults 0 0" | sudo tee -a /etc/fstab
 
 # الخطوة 5: تشغيل humanode-launcher
 echo "تشغيل humanode-launcher..."
-humanode-launcher --no-sandbox
+#humanode-launcher --no-sandbox
 
 echo "تم الانتهاء من التثبيت والتشغيل بنجاح!"
