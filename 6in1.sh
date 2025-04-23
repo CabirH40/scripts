@@ -38,6 +38,8 @@ run_script_in_order() {
     echo "❌ فشل في تحميل $name."
     FAILED_SCRIPTS+=("$name")
   fi
+  echo "⏳ الانتظار 60 ثانية قبل السكربت التالي..."
+  sleep 60
 }
 
 # ▶️ تنفيذ كل سكربت بالتسلسل
