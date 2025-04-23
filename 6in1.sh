@@ -39,7 +39,7 @@ run_script_in_order() {
     FAILED_SCRIPTS+=("$name")
   fi
   echo "⏳ الانتظار 60 ثانية قبل السكربت التالي..."
-  sleep 60
+  sleep 15
 }
 
 # ▶️ تنفيذ كل سكربت بالتسلسل
