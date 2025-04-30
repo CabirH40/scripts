@@ -35,4 +35,3 @@ done
 send_alert "✅ تم إعادة تشغيل $COUNT حاوية Docker بنجاح.\n🌍 IP: $PUBLIC_IP"
 
 # إعادة تشغيل مراقبة القرص
-nohup /root/disk_watcher.sh &
