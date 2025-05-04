@@ -33,7 +33,12 @@ last_alert_time = 0
 # الحصول على IP الحالي للسيرفر
 server_ip = requests.get("https://ifconfig.me").text
 
-
+def restart_whatsbot_service():
+    try:
+        subprocess.run(["sudo", "systemctl", "restart", "whatsbot.service"], check=True)
+        print("✅ تم إعادة تشغيل الخدمة بنجاح.")
+    except subprocess.CalledProcessError as e:
+        print(f"❌ فشل في إعادة التشغيل: {e}")
 def get_auth_url():
     while True:
         try:
@@ -137,7 +142,7 @@ def format_message(minutes, expires_at):
 
 
 
-    return f"{nodename}  - ينتهي عند: {time_str} - {auth_url}"
+    return f"{nodename}  -يجب التصوير في الوقت المكتوب تماما: {time_str} - {auth_url}"
 
 
 def handle_status_and_alerts():
@@ -156,24 +161,29 @@ def handle_status_and_alerts():
         if 0 <= diff < 310 and not alert_5_sent:
             msg = format_message(5, expires_at)
             alert_5_sent = True
+            get_auth_url()
             update_phone_if_needed()
             last_alert_time = time.time()
 
         if 310 <= diff < 1810 and not alert_30_sent:
             msg = format_message(30, expires_at)
             alert_30_sent = True
+            get_auth_url()
             update_phone_if_needed()
             last_alert_time = time.time()
 
         if 1810 <= diff < 21600 and not alert_4_sent:
             msg = format_message(240, expires_at)
             alert_4_sent = True
+            restart_whatsbot_service()
+            get_auth_url()
             update_phone_if_needed()
             last_alert_time = time.time()
 
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
-            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - لقد تم تخطي الوقت المحدد، الرجاء التصوير مرة اخرى", phone)
+            get_auth_url()
+            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - يجب التصوير فورا", phone)
             alert_missed_count += 1
             update_phone_if_needed()
             missed_alert_last_time = current_time
@@ -191,6 +201,8 @@ def handle_status_and_alerts():
 
 def main_loop():
     while True:
+        get_nodename():
+        update_phone_if_needed()
         handle_status_and_alerts()
         schedule.run_pending()
         time.sleep(20)
