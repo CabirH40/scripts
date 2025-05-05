@@ -168,21 +168,19 @@ def handle_status_and_alerts():
         if 310 <= diff < 1810 and not alert_30_sent:
             msg = format_message(30, expires_at)
             alert_30_sent = True
-            get_auth_url()
             update_phone_if_needed()
             last_alert_time = time.time()
 
-        if 1810 <= diff < 21600 and not alert_4_sent:
+        if 1810 <= diff < 3200 and not alert_4_sent:
+            get_auth_url()
             msg = format_message(240, expires_at)
             alert_4_sent = True
             restart_whatsbot_service()
-            get_auth_url()
             update_phone_if_needed()
             last_alert_time = time.time()
 
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
-            get_auth_url()
             send_message_to_server(f"⏰ ({nodename}) - {auth_url} - يجب التصوير فورا", phone)
             alert_missed_count += 1
             update_phone_if_needed()
