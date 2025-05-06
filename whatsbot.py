@@ -188,8 +188,6 @@ def handle_status_and_alerts():
         last_expires_at = expires_at
 
     if time.time() - last_alert_time > 20:
-        auth_url = get_auth_url()
-        if auth_url != "Unavailable":
             if 0 <= diff < 310 and not alert_5_sent:
                 auth_url = get_auth_url()
                 nodename = get_nodename()
