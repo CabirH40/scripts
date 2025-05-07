@@ -57,44 +57,16 @@ def send_telegram_error(message):
     except Exception as e:
         logging.error(f"فشل في إرسال الخطأ إلى Telegram: {e}")
 
-def restart_service(service_name, retries=2):
-    for i in range(retries):
-        try:
-            subprocess.run(["sudo", "systemctl", "restart", service_name], check=True)
-            logging.info(f"✅ تم إعادة تشغيل الخدمة: {service_name}")
-            return True
-        except subprocess.CalledProcessError as e:
-            msg = f"❌ فشل المحاولة {i+1} لإعادة تشغيل {service_name}: {e}"
-            logging.warning(msg)
-            send_telegram_error(msg)
-            time.sleep(3)
-    send_telegram_error(f"❌ فشل نهائي في إعادة تشغيل {service_name} بعد {retries} محاولات")
-    return False
 
-def restart_required_services():
-    if restart_service("humanode-tunnel.service"):
-        time.sleep(1)
-        restart_service("whatsbot.service")
-    else:
-        send_telegram_error("❌ فشل في إعادة تشغيل humanode-tunnel؛ لن يتم إعادة تشغيل WhatsBot.")
 
-def get_auth_url():
+
+
+def read_auth_url_from_file():
     try:
-        result = os.popen(
-            "/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json"
-        ).read().strip()
-        
-        if not result or "ngrok did not start" in result or "error" in result.lower() or not result.startswith("http"):
-            raise Exception("ngrok فشل أو auth-url غير صالح")
-
-        logging.info(f"✅ auth_url: {result}")
-        return result
-
+        with open("auth_url.txt", "r") as f:
+            return f.read().strip()
     except Exception as e:
-        msg = f"⚠️ فشل في جلب auth_url:\n{str(e)}"
-        print("📤 Telegram Message to Send:", msg)  # تأكيد قبل الإرسال
-        logging.warning(msg)
-        send_telegram_error(msg)
+        logging.error(f"📛 فشل في قراءة الرابط من الملف: {e}")
         return "Unavailable"
 
 def get_nodename():
@@ -189,21 +161,20 @@ def handle_status_and_alerts():
 
     if time.time() - last_alert_time > 20:
             if 0 <= diff < 310 and not alert_5_sent:
-                auth_url = get_auth_url()
+                auth_url = read_auth_url_from_file()
                 nodename = get_nodename()
                 update_phone_if_needed()
                 msg = format_message(5, expires_at)
                 alert_5_sent = True
             elif 310 <= diff < 1810 and not alert_30_sent:
-                auth_url = get_auth_url()
+                auth_url = read_auth_url_from_file()
                 nodename = get_nodename()
                 update_phone_if_needed()
                 msg = format_message(30, expires_at)
                 alert_30_sent = True
             elif 1810 <= diff < 3200 and not alert_4_sent:
-                auth_url = get_auth_url()
+                auth_url = read_auth_url_from_file()
                 nodename = get_nodename()
-                restart_required_services()
                 update_phone_if_needed()
                 msg = format_message(240, expires_at)
                 alert_4_sent = True
@@ -214,7 +185,7 @@ def handle_status_and_alerts():
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
             nodename = get_nodename()
-            auth_url = get_auth_url()
+            auth_url = read_auth_url_from_file()
             update_phone_if_needed()
             send_message_to_server(f"⏰ ({nodename}) - {auth_url} - يجب التصوير فورا", phone)
             alert_missed_count += 1
@@ -241,6 +212,6 @@ def main_loop():
 
 if __name__ == "__main__":
     nodename = get_nodename()
-    auth_url = get_auth_url()
+    auth_url = read_auth_url_from_file()
     time_started = time.time()
     main_loop()
