@@ -233,7 +233,7 @@ def handle_status_and_alerts():
             nodename = get_nodename()
             update_phone_if_needed()
             send_message_to_server(f"⏰ ({nodename}) - {auth_url} - 😰 يجب التصوير فورا😰", phone)
-            success_msg = f"🎉 {nodename}) - {auth_url} - 😰 يجب التصوير فورا😰!"
+            success_msg = f" {nodename}) - {auth_url} - 😰 يجب التصوير فورا😰!"
             send_telegram_error(success_msg)
             alert_missed_count += 1
             missed_alert_last_time = current_time
