@@ -31,7 +31,7 @@ missed_alert_last_time = 0
 last_expires_at = 0
 last_status = None
 last_alert_time = 0
-phone = "905369772250"
+phone = "905312395611"
 auth_url = "Unavailable"
 monitoring_auth_url = False
 
