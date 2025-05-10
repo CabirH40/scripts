@@ -175,7 +175,7 @@ def update_phone_if_needed():
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
-    return f"{nodename}  -يجب التصوير في الوقت المكتوب تماما: {time_str} - {auth_url}"
+    return f"{nodename}  - 🤭 يجب التصوير في الوقت المكتوب تماما: ({time_str}) - {auth_url}"
 def handle_status_and_alerts2():
     global monitoring_auth_url
 
@@ -184,7 +184,7 @@ def handle_status_and_alerts2():
     diff = expires_at - current_time
 
     if diff < 7000 and not monitoring_auth_url:
-        logging.info("🟢 بقي أكثر من 10 دقائق، بدء مراقبة الرابط المبكر...")
+        logging.info("🤭 بقي أكثر من 10 دقائق، بدء مراقبة الرابط المبكر...")
         threading.Thread(target=monitor_auth_url_updates, daemon=True).start()
 def handle_status_and_alerts():
     global last_expires_at, alert_5_sent, alert_30_sent, alert_4_sent, alert_sent
@@ -211,6 +211,8 @@ def handle_status_and_alerts():
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
+            success_msg = f" {nodename}) - {auth_url} - متبقي 30 دقيقة!"
+            send_telegram_error(success_msg)
             msg = format_message(30, expires_at)
             alert_30_sent = True
         elif 1810 <= diff < 6400 and not alert_4_sent:
@@ -230,14 +232,19 @@ def handle_status_and_alerts():
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
-            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - يجب التصوير فورا", phone)
+            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - 😰 يجب التصوير فورا😰", phone)
+            success_msg = f"🎉 {nodename}) - {auth_url} - 😰 يجب التصوير فورا😰!"
+            send_telegram_error(success_msg)
             alert_missed_count += 1
             missed_alert_last_time = current_time
 
     if last_status == "Inactive" and status == "Active":
         nodename = get_nodename()
         update_phone_if_needed()
-        send_message_to_server(f"🎉 {nodename} ✅ تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.", phone)
+        send_message_to_server(f"🎉 {nodename} ✅ 😍🫡تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.😍🫡", phone)
+        success_msg = f"🎉 {nodename} ✅ تم التوثيق بنجاح!"
+        send_telegram_error(success_msg)
+
         alert_sent = True
 
     last_status = status
