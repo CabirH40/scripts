@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from pathlib import Path
 import subprocess
-
+import threading
 # إعداد السجل
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -31,8 +31,9 @@ missed_alert_last_time = 0
 last_expires_at = 0
 last_status = None
 last_alert_time = 0
-phone = "905312395611"
+phone = "905369772250"
 auth_url = "Unavailable"
+monitoring_auth_url = False
 
 # جلب IP الحالي
 try:
@@ -43,10 +44,8 @@ except Exception as e:
 
 def send_telegram_error(message):
     try:
-        # دمج الـ IP مع نص الرسالة
         full_message = f"📡 IP: {server_ip}\n{message}"
-
-        print(f"📡 Sending to Telegram: {full_message}")  # log it
+        print(f"📡 Sending to Telegram: {full_message}")
         url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
         payload = {
             "chat_id": CHAT_ID,
@@ -57,17 +56,45 @@ def send_telegram_error(message):
     except Exception as e:
         logging.error(f"فشل في إرسال الخطأ إلى Telegram: {e}")
 
-
-
-
-
-def read_auth_url_from_file():
+def get_live_auth_url():
     try:
-        with open("auth_url.txt", "r") as f:
-            return f.read().strip()
+        result = subprocess.run([
+            "/root/.humanode/workspaces/default/humanode-peer",
+            "bioauth", "auth-url",
+            "--rpc-url-ngrok-detect",
+            "--chain", "/root/.humanode/workspaces/default/chainspec.json"
+        ], capture_output=True, text=True)
+        output = result.stdout.strip()
+        if output.startswith("http"):
+            logging.info(f"✅ رابط التوثيق المباشر: {output}")
+            return output
+        else:
+            raise Exception(f"رابط غير صالح: {output}")
     except Exception as e:
-        logging.error(f"📛 فشل في قراءة الرابط من الملف: {e}")
+        error_message = f"⚠️ فشل في تنفيذ أمر auth-url:\n{str(e)}"
+        send_telegram_error(error_message)
         return "Unavailable"
+
+def monitor_auth_url_updates():
+    global monitoring_auth_url, auth_url
+    try:
+        monitoring_auth_url = True
+        previous_url = get_live_auth_url()
+        auth_url = previous_url
+        logging.info("🔍 بدأت مراقبة رابط التوثيق كل 60 ثانية (رابط مبكر).")
+        while monitoring_auth_url:
+            time.sleep(10)
+            current_url = get_live_auth_url()
+            if current_url != previous_url and current_url != "Unavailable":
+                previous_url = current_url
+                auth_url = current_url
+                logging.info("🔄 تم تحديث رابط التوثيق.")
+                send_telegram_error(f"🔄 تم تحديث رابط التوثيق:\n{current_url}")
+                send_message_to_server(f"⏰ ({get_nodename()}) - {current_url} - تم تحديث رابط التوثيق", phone)
+    except Exception as e:
+        send_telegram_error(f"🧨 خطأ أثناء مراقبة الرابط المبكر:\n{e}")
+
+
 
 def get_nodename():
     try:
@@ -89,10 +116,13 @@ def get_status():
             return int(result["Active"].get("expires_at", 0) / 1000), "Active"
         elif "Inactive" in result:
             return 0, "Inactive"
+        else:
+             send_telegram_error(f"🚫 فشل في جلب حالة التوثيق: {e}")
+             return 0, "Unknown"
     except Exception as e:
         logging.warning(f"🚫 فشل في جلب حالة التوثيق: {e}")
         send_telegram_error(f"🚫 فشل في جلب حالة التوثيق: {e}")
-    return 0, "Inactive"
+    return 0, "Error"
 
 def reset_alerts():
     global alert_sent, alert_30_sent, alert_5_sent, alert_4_sent, alert_missed_count, missed_alert_last_time
@@ -136,20 +166,29 @@ def fetch_phone_number(nodename):
 
 def update_phone_if_needed():
     global phone
-    new_phone = fetch_phone_number(nodename)
-    if new_phone:
+    new_phone = fetch_phone_number(get_nodename())
+    if new_phone and new_phone != phone:
         phone = new_phone
         logging.info(f"📞 تم تحديث رقم الهاتف: {phone}")
+
 
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
     return f"{nodename}  -يجب التصوير في الوقت المكتوب تماما: {time_str} - {auth_url}"
+def handle_status_and_alerts2():
+    global monitoring_auth_url
 
+    expires_at, status = get_status()
+    current_time = int(time.time())
+    diff = expires_at - current_time
+
+    if diff < 7000 and not monitoring_auth_url:
+        logging.info("🟢 بقي أكثر من 10 دقائق، بدء مراقبة الرابط المبكر...")
+        threading.Thread(target=monitor_auth_url_updates, daemon=True).start()
 def handle_status_and_alerts():
     global last_expires_at, alert_5_sent, alert_30_sent, alert_4_sent, alert_sent
     global last_alert_time, last_status, alert_missed_count, missed_alert_last_time, auth_url
-
     current_time = int(time.time())
     expires_at, status = get_status()
     diff = expires_at - current_time
@@ -160,32 +199,36 @@ def handle_status_and_alerts():
         last_expires_at = expires_at
 
     if time.time() - last_alert_time > 20:
-            if 0 <= diff < 310 and not alert_5_sent:
-                auth_url = read_auth_url_from_file()
-                nodename = get_nodename()
-                update_phone_if_needed()
-                msg = format_message(5, expires_at)
-                alert_5_sent = True
-            elif 310 <= diff < 1810 and not alert_30_sent:
-                auth_url = read_auth_url_from_file()
-                nodename = get_nodename()
-                update_phone_if_needed()
-                msg = format_message(30, expires_at)
-                alert_30_sent = True
-            elif 1810 <= diff < 3200 and not alert_4_sent:
-                auth_url = read_auth_url_from_file()
-                nodename = get_nodename()
-                update_phone_if_needed()
-                msg = format_message(240, expires_at)
-                alert_4_sent = True
-            if msg:
-                send_message_to_server(msg, phone)
-                last_alert_time = time.time()
+        if 0 <= diff < 310 and not alert_5_sent:
+#            monitor_auth_url_updates()
+            auth_url = get_live_auth_url()
+            nodename = get_nodename()
+            update_phone_if_needed()
+            msg = format_message(5, expires_at)
+            alert_5_sent = True
+        elif 310 <= diff < 1810 and not alert_30_sent:
+#            monitor_auth_url_updates()
+            auth_url = get_live_auth_url()
+            nodename = get_nodename()
+            update_phone_if_needed()
+            msg = format_message(30, expires_at)
+            alert_30_sent = True
+        elif 1810 <= diff < 6400 and not alert_4_sent:
+#            monitor_auth_url_updates()
+            auth_url = get_live_auth_url()
+            nodename = get_nodename()
+            update_phone_if_needed()
+            msg = format_message(240, expires_at)
+            alert_4_sent = True
+        if msg:
+            send_message_to_server(msg, phone)
+            last_alert_time = time.time()
 
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
+#            monitor_auth_url_updates()
+            auth_url = get_live_auth_url()
             nodename = get_nodename()
-            auth_url = read_auth_url_from_file()
             update_phone_if_needed()
             send_message_to_server(f"⏰ ({nodename}) - {auth_url} - يجب التصوير فورا", phone)
             alert_missed_count += 1
@@ -202,16 +245,16 @@ def handle_status_and_alerts():
 def main_loop():
     while True:
         try:
-            
             handle_status_and_alerts()
+            handle_status_and_alerts2()
             schedule.run_pending()
-            time.sleep(20)
+            time.sleep(1)
         except Exception as e:
             send_telegram_error(f"🚨 خطأ غير متوقع في main_loop:\n{e}")
             logging.exception("استثناء غير متوقع")
 
 if __name__ == "__main__":
     nodename = get_nodename()
-    auth_url = read_auth_url_from_file()
+    auth_url = get_live_auth_url()
     time_started = time.time()
     main_loop()
