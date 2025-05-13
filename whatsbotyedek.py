@@ -19,7 +19,7 @@ remote_file_path = "/root/whatsapp-bot/what.txt"
 # بيانات السيرفر البعيد
 remote_ip = "152.53.84.199"
 remote_user = "root"
-remote_password = "4Y8z1eblEJ"  # مرئية كما طلبت
+remote_password = "4Y8z1eblxx"  # مرئية كما طلبت
 
 # الحالة العامة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
