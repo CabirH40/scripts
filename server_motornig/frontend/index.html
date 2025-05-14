@@ -1,52 +1,0 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Server Monitor - Login</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="/static/app.js" defer></script> 
-</head>
-<body>
-    <div id="login-section">
-        <h2>🔒 تسجيل الدخول</h2>
-        <input type="text" id="username" placeholder="اسم المستخدم"><br><br>
-        <input type="password" id="password" placeholder="كلمة المرور"><br><br>
-        <button onclick="login()">دخول</button>
-        <p id="login-error" style="color: red;"></p>
-    </div>
-
-    <div id="dashboard-section" style="display:none;">
-        <h2>📈 لوحة مراقبة السيرفرات</h2>
-
-        <input type="text" id="searchInput" placeholder="🔎 ابحث عن سيرفر..." 
-               oninput="renderTable()" 
-               style="margin-bottom:10px; padding:5px; width: 300px;">
-
-        <button onclick="restartAllTunnels()" 
-                class="restart-all-button" 
-                style="margin-left: 10px; background-color:#28a745; color:white; padding:10px; border:none; border-radius:6px; cursor:pointer;">
-            🔄 إعادة تشغيل كل التونيل
-        </button>
-
-        <br><br>
-
-        <table border="1" cellpadding="10" id="servers-table">
-            <thead>
-                <tr>
-                    <th>#</th> <!-- ✅ رقم التسلسل -->
-                    <th>node name ip</th>
-                    <th onclick="setSort('cpu')" style="cursor:pointer;">CPU ⬍</th>
-                    <th onclick="setSort('ram')" style="cursor:pointer;">RAM ⬍</th>
-                    <th onclick="setSort('disk')" style="cursor:pointer;">Disk ⬍</th>
-                    <th onclick="setSort('block')" style="cursor:pointer;">Block ⬍</th>
-                    <th>Status</th>
-                    <th>إجراءات</th>
-                </tr>
-            </thead>
-            <tbody id="servers-body">
-                <!-- هنا سيملأ بالسيرفرات تلقائياً من app.js -->
-            </tbody>
-        </table>
-    </div>
-</body>
-</html>
