@@ -5,7 +5,7 @@ import subprocess
 import psutil
 import socket
 
-SERVER_URL = "ws://141.98.115.104:8000/ws"
+SERVER_URL = "ws://ip:8000/ws"
 
 def get_ip():
     try:
