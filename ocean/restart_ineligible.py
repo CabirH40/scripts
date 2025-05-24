@@ -37,7 +37,7 @@ def get_public_ip():
 def kill_after_timeout(timeout_sec=10200):
     def killer():
         time.sleep(timeout_sec)
-        send_telegram("⏱️ السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً")
+        send_telegram("⏱️ السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً{public_ip}")
         os._exit(0)
     threading.Thread(target=killer, daemon=True).start()
 
@@ -73,9 +73,9 @@ def execute_restart(port, logger):
     try:
         subprocess.run(["docker", "compose", "restart"], cwd=path, timeout=400)
         logger.info(f"✅ تم إعادة تشغيل: node-{node_num}")
-        send_telegram(f"🔁 تمت إعادة تشغيل: node-{node_num}/docker-compose.yml")
+        send_telegram(f"🔁 {public_ip} تمت إعادة تشغيل: node-{node_num}/docker-compose.yml")
     except:
-        logger.error(f"⚠️ فشل في إعادة تشغيل: node-{node_num}")
+        logger.error(f"⚠️ {public_ip}  فشل في إعادة تشغيل: node-{node_num}")
 
 # البرنامج الرئيسي
 def main():
