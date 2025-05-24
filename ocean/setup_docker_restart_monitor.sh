@@ -19,8 +19,9 @@ systemctl daemon-reload
 
 # 📥 تحميل السكربتات من GitHub
 echo "⬇️ تحميل سكربتات Ocean..."
-curl -o /root/restart_ineligible.py https://raw.githubusercontent.com/CabirH40/script/main/ocean/restart_ineligible.py
-curl -o /root/restart_missing.py https://raw.githubusercontent.com/CabirH40/script/main/ocean/restart_missing.py
+curl -o /root/restart_ineligible.py https://raw.githubusercontent.com/CabirH40/script.sh/main/ocean/restart_ineligible.py
+curl -o /root/restart_missing.py https://raw.githubusercontent.com/CabirH40/script.sh/main/ocean/restart_missing.py
+
 
 # 🛡️ إعطاء صلاحيات تنفيذ
 chmod +x /root/restart_ineligible.py
