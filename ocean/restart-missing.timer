@@ -1,8 +1,0 @@
-Description=Run restart_missing.py every 6 hours (3am, 9am, etc.)
-
-[Timer]
-OnCalendar=3-23/6:00:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target
