@@ -1,0 +1,9 @@
+[Unit]
+Description=Run restart_ineligible.py every 6 hours (midnight, 6am, etc.)
+
+[Timer]
+OnCalendar=0/6:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target
