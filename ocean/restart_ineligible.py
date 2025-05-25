@@ -34,10 +34,10 @@ def get_public_ip():
         return "unknown"
 
 # مؤقت الإيقاف الذاتي بعد ساعتين و50 دقيقة
-def kill_after_timeout(timeout_sec=10200):
+def kill_after_timeout(public_ip, timeout_sec=10200):
     def killer():
         time.sleep(timeout_sec)
-        send_telegram("⏱️ السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً{public_ip}")
+        send_telegram(f"⏱️ السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً {public_ip}")
         os._exit(0)
     threading.Thread(target=killer, daemon=True).start()
 
@@ -63,7 +63,7 @@ def extract_ports(nodes):
     return ports
 
 # تنفيذ restart
-def execute_restart(port, logger):
+def execute_restart(port, public_ip, logger):
     node_num = (port - 1026) // 5
     path = f"/root/docker-compose-files/node-{node_num}"
     if not os.path.isfile(os.path.join(path, "docker-compose.yml")):
@@ -75,13 +75,13 @@ def execute_restart(port, logger):
         logger.info(f"✅ تم إعادة تشغيل: node-{node_num}")
         send_telegram(f"🔁 {public_ip} تمت إعادة تشغيل: node-{node_num}/docker-compose.yml")
     except:
-        logger.error(f"⚠️ {public_ip}  فشل في إعادة تشغيل: node-{node_num}")
+        logger.error(f"⚠️ {public_ip} فشل في إعادة تشغيل: node-{node_num}")
 
 # البرنامج الرئيسي
 def main():
     logger = setup_logger()
-    kill_after_timeout()
     public_ip = get_public_ip()
+    kill_after_timeout(public_ip)
     send_telegram(f"🚀 السكريبت ineligible بدأ على IP: {public_ip}")
 
     nodes = fetch_nodes(public_ip)
@@ -89,13 +89,9 @@ def main():
     ports = extract_ports(bad_nodes)
 
     for port in ports:
-        execute_restart(port, logger)
+        execute_restart(port, public_ip, logger)
 
-    send_telegram("✅ السكريبت ineligible انتهى")
+    send_telegram(f"✅ {public_ip} السكريبت ineligible انتهى")
 
 if __name__ == "__main__":
     main()
-
----
-
-هل أكملك نفس الشي لـ `restart_missing.py` والملفات المرتبطة؟
