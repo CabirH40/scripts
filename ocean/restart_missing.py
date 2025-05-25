@@ -34,10 +34,10 @@ def get_public_ip():
         return "unknown"
 
 # مؤقت الإيقاف الذاتي بعد ساعتين و50 دقيقة
-def kill_after_timeout(timeout_sec=10200):
+def kill_after_timeout(public_ip, timeout_sec=10200):
     def killer():
         time.sleep(timeout_sec)
-        send_telegram("⏱️{public_ip} السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً")
+        send_telegram(f"⏱️ {public_ip} السكريبت تجاوز المدة المحددة وتم إيقافه تلقائياً")
         os._exit(0)
     threading.Thread(target=killer, daemon=True).start()
 
@@ -60,7 +60,7 @@ def find_missing_ports(nodes):
     return [int(n.split('-')[1]) * 5 + 1026 for n in missing]
 
 # تنفيذ restart
-def execute_restart(port, logger):
+def execute_restart(port, public_ip, logger):
     node_num = (port - 1026) // 5
     path = f"/root/docker-compose-files/node-{node_num}"
     if not os.path.isfile(os.path.join(path, "docker-compose.yml")):
@@ -70,24 +70,24 @@ def execute_restart(port, logger):
     try:
         subprocess.run(["docker", "compose", "restart"], cwd=path, timeout=400)
         logger.info(f"✅ تم إعادة تشغيل: node-{node_num}")
-        send_telegram(f"🔁{public_ip} تمت إعادة تشغيل: node-{node_num}/docker-compose.yml")
+        send_telegram(f"🔁 {public_ip} تمت إعادة تشغيل: node-{node_num}/docker-compose.yml")
     except:
         logger.error(f"⚠️ فشل في إعادة تشغيل: node-{node_num}")
 
 # البرنامج الرئيسي
 def main():
     logger = setup_logger()
-    kill_after_timeout()
     public_ip = get_public_ip()
+    kill_after_timeout(public_ip)
     send_telegram(f"🚀 السكريبت missing بدأ على IP: {public_ip}")
 
     nodes = fetch_nodes(public_ip)
     ports = find_missing_ports(nodes)
 
     for port in ports:
-        execute_restart(port, logger)
+        execute_restart(port, public_ip, logger)
 
-    send_telegram("✅ السكريبت missing انتهى")
+    send_telegram(f"✅ {public_ip} السكريبت missing انتهى")
 
 if __name__ == "__main__":
     main()
