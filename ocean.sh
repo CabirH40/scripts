@@ -24,7 +24,8 @@ case $choice in
       "base": "10.0.0.0/8",
       "size": 24
     }
-  ]
+  ],
+  "dns": ["8.8.8.8", "8.8.4.4"]
 }
 EOF'
         sudo systemctl restart docker
