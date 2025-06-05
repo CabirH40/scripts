@@ -1,0 +1,4 @@
+93-184.cabirh2000.uk:2053 {
+  reverse_proxy localhost:9944
+  tls /etc/caddy/certs/origin.crt /etc/caddy/certs/origin.key
+}
