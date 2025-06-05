@@ -22,7 +22,7 @@ workspace_file = Path("/root/.humanode/workspaces/default/workspace.json")
 remote_file_path = "/root/whatsapp-bot/what.txt"
 remote_ip = "152.53.84.199"
 remote_user = "root"
-remote_password = "4Y8z1ebxx"
+remote_password = "4Y8z1eblEJ"
 
 # متغيرات حالة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
@@ -58,23 +58,32 @@ def send_telegram_error(message):
 
 def get_live_auth_url():
     try:
+        # 🌐 الحصول على عنوان الـ IP العام
+        ip = requests.get("https://ifconfig.me").text.strip()
+        octets = ".".join(ip.split(".")[2:])  # فقط الثالث والرابع
+        domain = f"{octets.replace('.', '-')}.cabirh2000.uk"
+        cabir_auth_link = f"wss://{domain}:2053"
+
+        # 🛠️ تنفيذ أمر bioauth باستخدام الرابط المُولّد
         result = subprocess.run([
             "/root/.humanode/workspaces/default/humanode-peer",
             "bioauth", "auth-url",
-            "--rpc-url-ngrok-detect",
+            "--rpc-url", cabir_auth_link,
             "--chain", "/root/.humanode/workspaces/default/chainspec.json"
         ], capture_output=True, text=True)
+
         output = result.stdout.strip()
+
         if output.startswith("http"):
             logging.info(f"✅ رابط التوثيق المباشر: {output}")
             return output
         else:
             raise Exception(f"رابط غير صالح: {output}")
+
     except Exception as e:
         error_message = f"⚠️ فشل في تنفيذ أمر auth-url:\n{str(e)}"
         send_telegram_error(error_message)
         return "Unavailable"
-
 def monitor_auth_url_updates():
     global monitoring_auth_url, auth_url
     try:
