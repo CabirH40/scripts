@@ -2,64 +2,51 @@
 
 set -e
 
-# 🚀 1. تثبيت Caddy
-sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
-
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' \
-  | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-
-echo "deb [signed-by=/usr/share/keyrings/caddy-stable-archive-keyring.gpg] https://dl.cloudsmith.io/public/caddy/stable/deb/debian any-version main" \
-  | sudo tee /etc/apt/sources.list.d/caddy-stable.list
-
-sudo apt update -y
-sudo apt install -y caddy
-
-# 🌍 2. استخراج آخر رقمين من IP العام
+# 🌍 1. استخراج آخر رقمين من IP العام
 IP=$(curl -s ifconfig.me)
-OCTETS=$(echo $IP | cut -d '.' -f 3,4 | tr '.' '-')
+OCTETS=$(echo "$IP" | cut -d '.' -f 3,4 | tr '.' '-')
 DOMAIN="${OCTETS}.cabirh2000.uk"
-FULL_DOMAIN="wss://${DOMAIN}:1400"
+FULL_DOMAIN="wss://${DOMAIN}:2053"
 
-# ⚙️ 3. إعداد Caddyfile
+# 📁 2. إنشاء مجلد الشهادات إن لم يكن موجودًا
+CERT_DIR="/etc/caddy/certs"
+sudo mkdir -p "$CERT_DIR"
+
+# 📤 3. سحب ملفات التشفير من السيرفر الأساسي (عدّل IP حسب السيرفر الأساسي)
+SOURCE_SERVER="root@YOUR_MAIN_SERVER_IP"
+REMOTE_CERT_PATH="/etc/caddy/certs"
+
+scp "$SOURCE_SERVER:$REMOTE_CERT_PATH/origin.crt" "$CERT_DIR/"
+scp "$SOURCE_SERVER:$REMOTE_CERT_PATH/origin.key" "$CERT_DIR/"
+
+# 🛠️ 4. إعادة كتابة ملف Caddyfile بالكامل
 CADDYFILE_PATH="/etc/caddy/Caddyfile"
 
 sudo bash -c "cat > $CADDYFILE_PATH" <<EOF
-$DOMAIN:1400 {
+$DOMAIN:2053 {
   reverse_proxy localhost:9944
-
-  encode gzip
-
-  tls {
-    protocols tls1.2 tls1.3
-  }
+  tls $CERT_DIR/origin.crt $CERT_DIR/origin.key
 }
 EOF
 
-# 🔓 4. فتح البورت
-sudo ufw allow 1400/tcp
+# 🔓 5. فتح البورت 2053 في الجدار الناري
+sudo ufw allow 2053/tcp
 
-# 🔁 5. إعادة تشغيل Caddy
+# 🔁 6. إعادة تشغيل Caddy
 sudo systemctl restart caddy
 
-# 🧠 6. حفظ الرابط كمتغير دائم باسم cabir_auth_link
-EXPORT_LINE="export cabir_auth_link=${FULL_DOMAIN}"
+# 🧼 7. حذف المتغير القديم إن وُجد
 PROFILE_FILE="$HOME/.bashrc"
+sed -i '/cabir_auth_link=/d' "$PROFILE_FILE"
 
-if ! grep -q "cabir_auth_link" "$PROFILE_FILE"; then
-  echo "$EXPORT_LINE" >> "$PROFILE_FILE"
-  echo "✅ تم حفظ الرابط كمتغير دائم: cabir_auth_link"
-else
-  sed -i "s|^export cabir_auth_link=.*|$EXPORT_LINE|" "$PROFILE_FILE"
-  echo "🔄 تم تحديث المتغير الدائم: cabir_auth_link"
-fi
+# 🧠 8. تعيين متغير جديد باسم مختلف
+EXPORT_LINE="export cabir_auth_link_2053=${FULL_DOMAIN}"
+echo "$EXPORT_LINE" >> "$PROFILE_FILE"
+export cabir_auth_link_2053="$FULL_DOMAIN"
 
-# ⏩ تحميل المتغير فورًا في الجلسة الحالية
-export cabir_auth_link=$FULL_DOMAIN
-
-# ✅ 7. عرض النتيجة
+# ✅ 9. عرض النتيجة
 echo ""
-echo "🎯 رابط WebSocket الخاص بك:"
-echo "   $cabir_auth_link"
+echo "🎯 رابط WebSocket الجديد:"
+echo "   $cabir_auth_link_2053"
 echo ""
-echo "💡 يمكنك استخدامه دائماً عبر:"
-echo "   \$cabir_auth_link"
+echo "💾 تم حفظ الرابط كمتغير دائم باسم: cabir_auth_link_2053"
