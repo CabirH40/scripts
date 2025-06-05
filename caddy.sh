@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # 🛡️ تأكد من وجود الأدوات
-sudo apt update -y
-sudo apt install -y curl ufw caddy
+
 
 # 📂 إنشاء مجلد الشهادات
 sudo mkdir -p /etc/caddy/certs
