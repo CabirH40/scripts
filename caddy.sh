@@ -25,7 +25,8 @@ EOF
 
 # 🔓 فتح البورت
 sudo ufw allow 2053/tcp
-
+sudo chown -R caddy:caddy /etc/caddy/certs
+sudo chmod 600 /etc/caddy/certs/*
 # 🔁 إعادة تشغيل Caddy
 sudo systemctl restart caddy
 
