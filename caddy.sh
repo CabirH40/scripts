@@ -4,8 +4,9 @@
 sudo mkdir -p /etc/caddy/certs
 
 # 🌐 تحميل الشهادات من GitHub
-curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/origin.crt" -o /etc/caddy/certs/origin.crt
-curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/origin.key" -o /etc/caddy/certs/origin.key
+curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/certs/origin.crt" -o /etc/caddy/certs/origin.crt
+curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/certs/origin.key" -o /etc/caddy/certs/origin.key
+
 
 # 🌍 جلب IP وتحويله لنطاق فرعي
 IP=$(curl -s ifconfig.me)
