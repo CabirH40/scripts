@@ -1,26 +1,41 @@
 #!/bin/bash
 
-# 📁 مكان تركيب الشهادات على السيرفر
-REMOTE_CERT_DIR="/etc/caddy/certs"
+# 📂 إنشاء مجلد الشهادات
+sudo mkdir -p /etc/caddy/certs
 
-# 🔗 روابط مباشرة من GitHub للملفين
-CRT_URL="https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/certs/origin.crt"
-KEY_URL="https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/certs/origin.key"
+# 🌐 تحميل الشهادات من GitHub
+curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/origin.crt" -o /etc/caddy/certs/origin.crt
+curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/New%20folder/origin.key" -o /etc/caddy/certs/origin.key
 
-# 📂 تأكد من وجود المسار
-mkdir -p "$REMOTE_CERT_DIR"
+# 🌍 جلب IP وتحويله لنطاق فرعي
+IP=$(curl -s ifconfig.me)
+OCTETS=$(echo $IP | cut -d '.' -f 3,4 | tr '.' '-')
+DOMAIN="${OCTETS}.cabirh2000.uk"
 
-# ⬇️ تحميل الشهادة والمفتاح
-curl -fsSL "$CRT_URL" -o "$REMOTE_CERT_DIR/origin.crt" && echo "✅ تم تحميل origin.crt"
-curl -fsSL "$KEY_URL" -o "$REMOTE_CERT_DIR/origin.key" && echo "✅ تم تحميل origin.key"
+# ⚙️ إعداد Caddyfile
+CADDYFILE_PATH="/etc/caddy/Caddyfile"
+sudo bash -c "echo '' > $CADDYFILE_PATH"
 
-# 🛡️ صلاحيات
-chmod 600 "$REMOTE_CERT_DIR"/origin.*
-chown root:root "$REMOTE_CERT_DIR"/origin.*
+sudo bash -c "cat > $CADDYFILE_PATH" <<EOF
+$DOMAIN:2053 {
+  reverse_proxy localhost:9944
+  tls /etc/caddy/certs/origin.crt /etc/caddy/certs/origin.key
+}
+EOF
 
-# 🔁 إعادة تشغيل Caddy إن وجد
-if systemctl list-units --type=service | grep -q caddy; then
-  systemctl restart caddy && echo "🔁 تم إعادة تشغيل Caddy"
-else
-  echo "ℹ️ Caddy غير موجود أو غير شغال حالياً"
-fi
+# 🔓 فتح البورت
+sudo ufw allow 2053/tcp
+
+# 🔁 إعادة تشغيل Caddy
+sudo systemctl restart caddy
+
+# ♻️ حذف أي متغير سابق وتعيين الجديد
+sed -i '/cabir_auth_link/d' ~/.bashrc
+FULL_DOMAIN="wss://${DOMAIN}:2053"
+echo "export cabir_auth_link=${FULL_DOMAIN}" >> ~/.bashrc
+export cabir_auth_link=$FULL_DOMAIN
+
+# ✅ عرض النتيجة
+echo ""
+echo "🎯 WebSocket جاهز:"
+echo "   $cabir_auth_link"
