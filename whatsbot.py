@@ -99,7 +99,7 @@ def monitor_auth_url_updates():
                 auth_url = current_url
                 logging.info("🔄 تم تحديث رابط التوثيق.")
                 send_telegram_error(f"🔄 تم تحديث رابط التوثيق:\n{current_url}")
-                send_message_to_server(f"⏰ ({get_nodename()}) - {current_url} - تم تحديث رابط التوثيق", phone)
+                #send_message_to_server(f"⏰ ({get_nodename()}) - {current_url} - تم تحديث رابط التوثيق", phone)
     except Exception as e:
         send_telegram_error(f"🧨 خطأ أثناء مراقبة الرابط المبكر:\n{e}")
 
