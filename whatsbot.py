@@ -58,32 +58,19 @@ def send_telegram_error(message):
 
 def get_live_auth_url():
     try:
-        # 🌐 الحصول على عنوان الـ IP العام
-        ip = requests.get("https://ifconfig.me").text.strip()
-        octets = ".".join(ip.split(".")[2:])  # فقط الثالث والرابع
-        domain = f"{octets.replace('.', '-')}.cabirh2000.uk"
-        cabir_auth_link = f"wss://{domain}:2053"
-
-        # 🛠️ تنفيذ أمر bioauth باستخدام الرابط المُولّد
-        result = subprocess.run([
-            "/root/.humanode/workspaces/default/humanode-peer",
-            "bioauth", "auth-url",
-            "--rpc-url", cabir_auth_link,
-            "--chain", "/root/.humanode/workspaces/default/chainspec.json"
-        ], capture_output=True, text=True)
-
-        output = result.stdout.strip()
-
-        if output.startswith("http"):
-            logging.info(f"✅ رابط التوثيق المباشر: {output}")
-            return output
+        # 📄 قراءة الرابط من الملف مباشرة
+        with open("/root/link/link.txt", "r") as f:
+            url = f.read().strip()
+        if url.startswith("http"):
+            logging.info(f"✅ تم جلب رابط التوثيق من الملف: {url}")
+            return url
         else:
-            raise Exception(f"رابط غير صالح: {output}")
-
+            raise Exception(f"الرابط غير صالح في الملف: {url}")
     except Exception as e:
-        error_message = f"⚠️ فشل في تنفيذ أمر auth-url:\n{str(e)}"
+        error_message = f"⚠️ فشل في قراءة رابط التوثيق من الملف:\n{str(e)}"
         send_telegram_error(error_message)
         return "Unavailable"
+        
 def monitor_auth_url_updates():
     global monitoring_auth_url, auth_url
     try:
