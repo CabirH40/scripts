@@ -3,7 +3,7 @@
 export DEBIAN_FRONTEND=noninteractive
 
 echo "🔄 Updating system packages..."
-sudo apt-get update -y && sudo apt-get upgrade -y
+sudo apt-get update -y
 
 echo "📦 Installing required packages..."
 sudo apt-get install -y --no-install-recommends \
