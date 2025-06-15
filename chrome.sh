@@ -3,11 +3,7 @@
 # 🚫 اجعل APT غير تفاعلي تماماً
 export DEBIAN_FRONTEND=noninteractive
 
-# 🔄 تحديث النظام بصمت وبدون تدخل
-echo "🔄 Updating system packages..."
-sudo apt-get update -y \
-  -o Dpkg::Options::="--force-confdef" \
-  -o Dpkg::Options::="--force-confold"
+
 
 # 📦 تثبيت جميع الحزم المطلوبة بصمت
 echo "📦 Installing required packages..."
