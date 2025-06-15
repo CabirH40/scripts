@@ -62,6 +62,7 @@ docker ps -q | xargs -r docker stop
 echo "📁 Creating Chromium setup..."
 mkdir -p $HOME/chromium && cd $HOME/chromium
 
+# ...
 cat <<EOF > docker-compose.yaml
 version: "3.8"
 
@@ -77,6 +78,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Istanbul
+      - CHROME_CLI=--app=https://discord.com
     volumes:
       - ./config:/config
     ports:
