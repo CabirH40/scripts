@@ -79,7 +79,7 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Istanbul
-      - CHROME_CLI=--app=https://discord.com
+      - CHROME_CLI=--app=https://discord.com/login
     volumes:
       - ./config:/config
     ports:
