@@ -62,7 +62,6 @@ docker ps -q | xargs -r docker stop
 echo "📁 Creating Chromium setup..."
 mkdir -p $HOME/chromium && cd $HOME/chromium
 
-# ...
 cat <<EOF > docker-compose.yaml
 version: "3.8"
 
@@ -88,10 +87,10 @@ services:
     restart: unless-stopped
 EOF
 
-# 🚀 تشغيل الحاوية
+# 🚀 تشغيل الحاوية (بدعم كلا النسختين من compose)
 echo "🚀 Starting Chromium container..."
-docker-compose up -d
+docker compose up -d || docker-compose up -d
 
 echo "✅ All done!"
 echo "🌐 Access it via: http://your_server_ip:3010"
-echo "🔐 Login: furkan / 123456"
+echo "🔐 Login: d / d"
