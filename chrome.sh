@@ -72,8 +72,8 @@ services:
     security_opt:
       - seccomp:unconfined
     environment:
-      - CUSTOM_USER=furkan
-      - PASSWORD=123456
+      - CUSTOM_USER=d
+      - PASSWORD=d
       - PUID=1000
       - PGID=1000
       - TZ=Europe/Istanbul
