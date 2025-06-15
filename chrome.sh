@@ -1,26 +1,23 @@
 #!/bin/bash
 
-# 🧼 خنق أي تدخل تفاعلي
 export DEBIAN_FRONTEND=noninteractive
 
-echo "🔍 Checking if Docker is installed..."
+echo "🔄 Updating system packages..."
+sudo apt-get update -y && sudo apt-get upgrade -y
 
-# ✅ تثبيت Docker إذا ما كان موجود
-if ! command -v docker &> /dev/null
-then
-    echo "🐳 Docker not found. Installing Docker..."
+echo "📦 Installing required packages..."
+sudo apt-get install -y --no-install-recommends \
+    -o Dpkg::Options::="--force-confdef" \
+    -o Dpkg::Options::="--force-confold" \
+    htop ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev tmux \
+    iptables curl nvme-cli git wget make jq libleveldb-dev build-essential \
+    pkg-config ncdu tar clang bsdmainutils lsb-release libssl-dev \
+    libreadline-dev libffi-dev gcc screen unzip lz4 gnupg
 
-    sudo apt-get update -y
-    sudo apt-get upgrade -y
-
-    sudo apt-get install -y --no-install-recommends \
-        -o Dpkg::Options::="--force-confdef" \
-        -o Dpkg::Options::="--force-confold" \
-        ca-certificates \
-        curl \
-        gnupg \
-        lsb-release
-
+# تثبيت Docker
+echo "🐳 Checking if Docker is installed..."
+if ! command -v docker &> /dev/null; then
+    echo "🐳 Installing Docker..."
     sudo mkdir -p /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
         sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
@@ -31,35 +28,40 @@ then
       sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     sudo apt-get update -y
-
-    sudo apt-get install -y --no-install-recommends \
-        -o Dpkg::Options::="--force-confdef" \
-        -o Dpkg::Options::="--force-confold" \
-        docker-ce docker-ce-cli containerd.io
-
+    sudo apt-get install -y --no-install-recommends docker-ce docker-ce-cli containerd.io
     echo "✅ Docker installed."
 else
     echo "✅ Docker already installed."
 fi
 
-# ✅ تثبيت Docker Compose إذا مو موجود
-if ! command -v docker-compose &> /dev/null
-then
+# تثبيت Docker Compose
+echo "🔧 Checking Docker Compose..."
+if ! command -v docker-compose &> /dev/null; then
     echo "🔧 Installing Docker Compose..."
     VER=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '"' -f 4)
-    curl -L "https://github.com/docker/compose/releases/download/$VER/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    curl -L "https://github.com/docker/compose/releases/download/$VER/docker-compose-$(uname -s)-$(uname -m)" \
+        -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
     echo "✅ Docker Compose installed."
 else
     echo "✅ Docker Compose already installed."
 fi
 
-# 🛑 إيقاف جميع الحاويات الشغالة
+# صلاحيات Docker
+echo "👤 Adding current user to Docker group..."
+sudo groupadd docker 2>/dev/null || true
+sudo usermod -aG docker $USER
+
+# عرض المنطقة الزمنية
+echo "🕒 Current system timezone is:"
+realpath --relative-to /usr/share/zoneinfo /etc/localtime
+
+# وقف كل الحاويات
 echo "🛑 Stopping all running containers..."
 docker ps -q | xargs -r docker stop
 
-# 📁 إنشاء مجلد chromium وملف التكوين
-echo "📁 Creating Chromium setup..."
+# تحضير مجلد وملف التكوين
+echo "📁 Creating Chromium docker-compose setup..."
 mkdir -p $HOME/chromium && cd $HOME/chromium
 
 cat <<EOF > docker-compose.yaml
@@ -87,10 +89,17 @@ services:
     restart: unless-stopped
 EOF
 
-# 🚀 تشغيل الحاوية (بدعم كلا النسختين من compose)
+# تشغيل الحاوية
 echo "🚀 Starting Chromium container..."
 docker compose up -d || docker-compose up -d
 
+# عرض الإصدارات والتأكيد
+echo "📦 Docker version:"
+docker version
+
+echo "📦 Docker Compose version:"
+docker-compose --version || docker compose version
+
 echo "✅ All done!"
-echo "🌐 Access it via: http://your_server_ip:3010"
+echo "🌐 Access Chromium via: http://your_server_ip:3010"
 echo "🔐 Login: d / d"
