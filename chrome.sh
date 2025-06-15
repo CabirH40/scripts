@@ -3,7 +3,8 @@
 # 🚫 اجعل APT غير تفاعلي تماماً
 export DEBIAN_FRONTEND=noninteractive
 
-
+# 🚫 منع نافذة needrestart (Pending kernel upgrade أو إعادة تشغيل خدمات)
+echo "\$nrconf{restart} = 'a';" | sudo tee /etc/needrestart/conf.d/99-auto.conf > /dev/null
 
 # 📦 تثبيت جميع الحزم المطلوبة بصمت
 echo "📦 Installing required packages..."
