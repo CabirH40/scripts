@@ -2,11 +2,7 @@
 
 echo "بدء تثبيت الهوما نود..."
 
-# الخطوة 1: إضافة المستودع وتثبيت libssl1.1
-echo "إضافة المستودع focal-security..."
-echo "deb http://security.ubuntu.com/ubuntu focal-security main" | sudo tee /etc/apt/sources.list.d/focal-security.list
-sudo apt update
-sudo apt install -y libssl1.1
+
 
 # الخطوة 2: تثبيت humanode-launcher
 echo "تثبيت apt-transport-https وإضافة مستودع humanode-launcher..."
