@@ -1,4 +1,3 @@
-#agent.py
 import asyncio
 import websockets
 import json
@@ -6,7 +5,7 @@ import subprocess
 import psutil
 import socket
 
-SERVER_URL = "ws://ip:8000/ws"
+SERVER_URL = "ws://141.98.115.104:8000/ws"
 
 def get_ip():
     try:
@@ -19,10 +18,20 @@ def get_ip():
         return "unknown"
 
 async def send_data(websocket):
+    prev_net = psutil.net_io_counters()
     while True:
         cpu = psutil.cpu_percent(interval=1)
         ram = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
+
+        current_net = psutil.net_io_counters()
+        delta_sent = current_net.bytes_sent - prev_net.bytes_sent
+        delta_recv = current_net.bytes_recv - prev_net.bytes_recv
+
+        sent_mb = round(delta_sent / (1024 * 1024), 2)
+        recv_mb = round(delta_recv / (1024 * 1024), 2)
+
+        prev_net = current_net
 
         try:
             block_output = subprocess.check_output(
@@ -42,9 +51,12 @@ async def send_data(websocket):
             "ram_total": round(ram.total / (1024**3), 2),
             "disk": disk.percent,
             "disk_total": round(disk.total / (1024**3), 2),
-            "block": block
+            "block": block,
+            "net_sent_avg": sent_mb,      # الآن يعطي الصرف منذ آخر إرسال
+            "net_recv_avg": recv_mb       # الآن يعطي الصرف منذ آخر إرسال
         }
 
+        print(data)
         await websocket.send(json.dumps(data))
         await asyncio.sleep(5)
 
@@ -58,3 +70,7 @@ async def connect():
             await asyncio.sleep(5)
 
 asyncio.run(connect())
+
+
+
+
