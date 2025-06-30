@@ -5,7 +5,7 @@ import subprocess
 import psutil
 import socket
 
-SERVER_URL = "ws://141.98.115.104:8000/ws"
+SERVER_URL = "ws://141.98.115.104:8000/ws"  # ← عدل IP سيرفرك هنا
 
 def get_ip():
     try:
@@ -14,6 +14,16 @@ def get_ip():
         ip = s.getsockname()[0]
         s.close()
         return ip
+    except Exception:
+        return "unknown"
+
+def check_service_status(service_name):
+    try:
+        status = subprocess.check_output(
+            ["systemctl", "is-active", service_name],
+            stderr=subprocess.DEVNULL
+        ).decode().strip()
+        return status  # 'active', 'inactive', 'failed'
     except Exception:
         return "unknown"
 
@@ -43,6 +53,12 @@ async def send_data(websocket):
         except Exception:
             block = 0
 
+        services_status = {
+            "humanode-tunnel": check_service_status("humanode-tunnel.service"),
+            "whatsbot": check_service_status("whatsbot.service"),
+            "humanode-peer": check_service_status("humanode-peer.service")
+        }
+
         data = {
             "hostname": get_ip(),
             "cpu": cpu,
@@ -52,11 +68,12 @@ async def send_data(websocket):
             "disk": disk.percent,
             "disk_total": round(disk.total / (1024**3), 2),
             "block": block,
-            "net_sent_avg": sent_mb,      # الآن يعطي الصرف منذ آخر إرسال
-            "net_recv_avg": recv_mb       # الآن يعطي الصرف منذ آخر إرسال
+            "net_sent_avg": sent_mb,
+            "net_recv_avg": recv_mb,
+            "services": services_status
         }
 
-        print(data)
+        print(data)  # للمراجعة
         await websocket.send(json.dumps(data))
         await asyncio.sleep(5)
 
@@ -69,8 +86,5 @@ async def connect():
             print(f"Connection error: {e}")
             await asyncio.sleep(5)
 
-asyncio.run(connect())
-
-
-
-
+if __name__ == "__main__":
+    asyncio.run(connect())
