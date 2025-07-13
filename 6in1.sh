@@ -23,9 +23,9 @@ run_script_in_order() {
   local url=${scripts[$name]}
 
   echo "⬇️ جاري تحميل $name من $url..."
-  if wget -q -O "/root/$name" "$url"; then
-    chmod +x "/root/$name"
-    echo "🚀 تشغيل /root/$name..."
+  if wget -q -O "/root/script/$name" "$url"; then
+    chmod +x "/root/script/$name"
+    echo "🚀 تشغيل /root/script/$name..."
     /root/$name
     if [ $? -ne 0 ]; then
       echo "⚠️ تحذير: السكربت $name تم تحميله لكنه فشل أثناء التشغيل."
