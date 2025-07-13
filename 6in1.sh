@@ -8,10 +8,8 @@ apt-get update -y && apt-get install -y jq curl || echo "❌ فشل في تثب�
 declare -A scripts=(
   [web_sayfa_hmnd.sh]="https://github.com/CabirH40/script.sh/raw/main/web_sayfa_hmnd.sh"
   [whatsbotPythonayarlar.sh]="https://github.com/CabirH40/script.sh/raw/main/whatsbotPythonayarlar.sh"
-  [net_check.sh]="https://github.com/CabirH40/script.sh/raw/main/net_check.sh"
   [check_process-humanode2.sh]="https://github.com/CabirH40/script.sh/raw/main/check_process-humanode2.sh"
   [script.sh]="https://github.com/CabirH40/script.sh/raw/main/script2.sh"
-  [get_auth_url.sh]="https://github.com/CabirH40/script.sh/raw/main/get_auth_url.sh"
   [whatsbot2.sh]="https://github.com/CabirH40/script.sh/raw/main/whatsbot2.sh"
 )
 
@@ -46,10 +44,8 @@ run_script_in_order() {
 for script in \
   web_sayfa_hmnd.sh \
   whatsbotPythonayarlar.sh \
-  net_check.sh \
   check_process-humanode2.sh \
   script.sh \
-  get_auth_url.sh \
   whatsbot2.sh; do
   run_script_in_order "$script"
 done
