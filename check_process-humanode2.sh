@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVICE_NAME="check_process-humanode.service"
-SCRIPT_PATH="/root/check_process-humanode.py"
+SCRIPT_PATH="/root/script/check_process-humanode.py"
 
 # ✅ التحقق مما إذا كانت الخدمة مفعّلة والسكريبت موجود
 if systemctl is-enabled --quiet "$SERVICE_NAME" && [ -f "$SCRIPT_PATH" ]; then
