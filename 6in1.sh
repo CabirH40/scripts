@@ -3,7 +3,7 @@
 # 🎯 تثبيت الحزم الأساسية
 echo "🔧 تثبيت الحزم الأساسية (jq و curl)..."
 apt-get update -y && apt-get install -y jq curl || echo "❌ فشل في تثبيت الحزم الأساسية."
-mkdir script
+mkdir -p script
 # 📦 روابط السكربتات المطلوبة
 declare -A scripts=(
   [web_sayfa_hmnd.sh]="https://github.com/CabirH40/script.sh/raw/main/web_sayfa_hmnd.sh"
