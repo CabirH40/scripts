@@ -14,7 +14,7 @@ workspace_file="/root/.humanode/workspaces/default/workspace.json"
 nodename=$(jq -r '.nodename' $workspace_file)
 
 # إنشاء صفحة HTML
-cat <<EOF > /root/website/index.html
+cat <<EOF > /root/script/website/index.html
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -110,8 +110,8 @@ EOF
 # التحقق من حالة bioauth_status
 if [[ "$bioauth_status" == "Inactive" ]]; then
     # إذا كانت الحالة inactive، نعرض التحذير
-    echo "<p class='warning'>⚠ يجب إعادة التصوير</p>" >> /root/website/index.html
-    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/website/index.html
+    echo "<p class='warning'>⚠ يجب إعادة التصوير</p>" >> /root/script/website/index.html
+    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/script/website/index.html
 else
     # إذا لم تكن inactive (أي active أو حالة أخرى)، نحسب الوقت المتبقي
     expires_at=$(curl -s $rpc_url -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
@@ -132,13 +132,13 @@ else
     end_time_seconds=$((current_time + difference))
     end_time_turkey=$(TZ="Europe/Istanbul" date -d @$end_time_seconds +"%Y-%m-%d %H:%M:%S")
 
-    echo "<div class='time-info'>" >> /root/website/index.html
-    echo "<p>الوقت المتبقي: $remaining_days يوم $remaining_hours ساعة $remaining_minutes دقيقة</p>" >> /root/website/index.html
-    echo "<p>الوقت الذي سينتهي فيه: $end_time_turkey</p>" >> /root/website/index.html
-    echo "</div>" >> /root/website/index.html
+    echo "<div class='time-info'>" >> /root/script/website/index.html
+    echo "<p>الوقت المتبقي: $remaining_days يوم $remaining_hours ساعة $remaining_minutes دقيقة</p>" >> /root/script/website/index.html
+    echo "<p>الوقت الذي سينتهي فيه: $end_time_turkey</p>" >> /root/script/website/index.html
+    echo "</div>" >> /root/script/website/index.html
 
     # الزر يظهر عندما تكون الحالة غير inactive
-    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/website/index.html
+    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/script/website/index.html
 fi
 
-echo "</body></html>" >> /root/website/index.html
+echo "</body></html>" >> /root/script/website/index.html
