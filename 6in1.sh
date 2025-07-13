@@ -9,6 +9,7 @@ declare -A scripts=(
   [web_sayfa_hmnd.sh]="https://github.com/CabirH40/script.sh/raw/main/web_sayfa_hmnd.sh"
   [whatsbotPythonayarlar.sh]="https://github.com/CabirH40/script.sh/raw/main/whatsbotPythonayarlar.sh"
   [check_process-humanode2.sh]="https://github.com/CabirH40/script.sh/raw/main/check_process-humanode2.sh"
+  [get_auth_url]="https://github.com/CabirH40/script.sh/raw/main/get_auth_url.sh"
   [script.sh]="https://github.com/CabirH40/script.sh/raw/main/script2.sh"
   [whatsbot2.sh]="https://github.com/CabirH40/script.sh/raw/main/whatsbot2.sh"
 )
@@ -45,6 +46,7 @@ for script in \
   web_sayfa_hmnd.sh \
   whatsbotPythonayarlar.sh \
   check_process-humanode2.sh \
+  get_auth_url.sh\
   script.sh \
   whatsbot2.sh; do
   run_script_in_order "$script"
