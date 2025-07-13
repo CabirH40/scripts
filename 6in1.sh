@@ -56,8 +56,8 @@ done
 echo "📆 تحديث المهام المجدولة (crontab)..."
 crontab -r 2>/dev/null
 cat <<EOF | crontab -
-* * * * * /root/get_auth_url.sh
-*/10 * * * * /root/script.sh
+* * * * * /root/script/get_auth_url.sh
+*/10 * * * * /root/script/script.sh
 EOF
 
 # 📋 ملخص التثبيت
