@@ -2,7 +2,7 @@
 
 # تعريف المتغيرات
 SERVICE_NAME="http-server.service"
-SCRIPT_PATH="/root/get_auth_url.sh"
+SCRIPT_PATH="/root/script/get_auth_url.sh"
 
 # ✅ إذا الخدمة مثبتة والسكريبت موجود، لا تعمل شيء
 if systemctl is-enabled --quiet "$SERVICE_NAME" && [ -f "$SCRIPT_PATH" ]; then
@@ -14,30 +14,30 @@ echo "🧪 الخدمة غير موجودة أو السكربت ناقص. جار
 
 # get_auth_url.sh scriptini indir
 echo "get_auth_url.sh indiriliyor..."
-wget -O /root/get_auth_url.sh "https://github.com/CabirH40/script.sh/raw/main/get_auth_url.sh"
+wget -O /root/script/get_auth_url.sh "https://github.com/CabirH40/script.sh/raw/main/get_auth_url.sh"
 
 # get_auth_url.sh çalıştırılabilir yap
 echo "get_auth_url.sh çalıştırılabilir yapılıyor..."
-chmod +x /root/get_auth_url.sh
+chmod +x /root/script/get_auth_url.sh
 
 # website dizinini oluştur
 echo "Website dizini oluşturuluyor..."
-mkdir -p /root/website
+mkdir -p /root/script/website
 
 # start_http_server.sh scriptini oluştur
 echo "start_http_server.sh oluşturuluyor..."
-cat << 'EOF' > /root/start_http_server.sh
+cat << 'EOF' > /root/script/start_http_server.sh
 #!/bin/bash
-cd /root/website
+cd /root/script/website
 python3 -m http.server 2025
 EOF
 
 # start_http_server.sh çalıştırılabilir yap
-chmod +x /root/start_http_server.sh
+chmod +x /root/script/start_http_server.sh
 
 # get_auth_url.sh için cron görevi ekle (her dakika çalıştır)
 echo "Cron görevi ekleniyor..."
-(crontab -l 2>/dev/null; echo "* * * * * /root/get_auth_url.sh") | crontab -
+(crontab -l 2>/dev/null; echo "* * * * * /root/script/get_auth_url.sh") | crontab -
 
 # http-server için systemd hizmet dosyasını oluştur
 echo "http-server.service oluşturuluyor..."
@@ -48,7 +48,7 @@ After=network.target
 
 [Service]
 ExecStart=/root/start_http_server.sh
-WorkingDirectory=/root/website
+WorkingDirectory=/root/script/website
 Restart=always
 User=root
 
