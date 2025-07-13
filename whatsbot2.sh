@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SERVICE_NAME="whatsbot.service"
-SCRIPT_PATH="/root/whatsapp-bot/whatsbot.py"
+SCRIPT_PATH="/root/script/whatsapp-bot/whatsbot.py"
 SERVICE_FILE="/etc/systemd/system/$SERVICE_NAME"
 
 # ✅ إذا الخدمة مثبتة والسكريبت موجود، لا تعمل شيء
@@ -13,7 +13,7 @@ fi
 echo "🧪 الخدمة غير موجودة أو السكربت ناقص. جاري التثبيت..."
 
 # 1. إنشاء مجلد البوت
-mkdir -p /root/whatsapp-bot
+mkdir -p /root/script/whatsapp-bot
 
 # 2. تحميل السكربت
 wget -q -O "$SCRIPT_PATH" https://raw.githubusercontent.com/CabirH40/script.sh/main/whatsbot.py
@@ -30,7 +30,7 @@ ExecStart=/usr/bin/python3 $SCRIPT_PATH
 Restart=always
 RestartSec=5
 User=root
-WorkingDirectory=/root/whatsapp-bot
+WorkingDirectory=/root/script/whatsapp-bot
 
 [Install]
 WantedBy=multi-user.target
