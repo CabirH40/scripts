@@ -26,7 +26,7 @@ run_script_in_order() {
   if wget -q -O "/root/script/$name" "$url"; then
     chmod +x "/root/script/$name"
     echo "🚀 تشغيل /root/script/$name..."
-    /root/$name
+    /root/script/$name
     if [ $? -ne 0 ]; then
       echo "⚠️ تحذير: السكربت $name تم تحميله لكنه فشل أثناء التشغيل."
       FAILED_SCRIPTS+=("$name")
