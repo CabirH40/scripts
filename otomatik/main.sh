@@ -1,10 +1,7 @@
 #!/bin/bash
 
 # 🛠️ 1) إنشاء مجلدات
-mkdir -p /root/script
-for i in {1..9}; do
-  mkdir -p "/root/script/node$i"
-done
+
 
 # 🖥️ 2) تحميل السكربتات داخل /root/script
 cd /root/script
@@ -21,15 +18,7 @@ bash checkpeer.sh
 bash peer.sh
 bash port-ayar.sh
 
-# 📂 4) نقل الواتس الى مجلد whatsapp-bot
-mkdir -p /root/script/whatsapp-bot
-mv whatsbotservis.sh /root/script/whatsapp-bot/
 
-# 🔁 5) تجهيز مجلدات النودات مع السكربتات
-for i in {1..9}; do
-  cp script.sh "/root/script/node$i/"
-  mkdir -p "/root/script/node$i/whatsapp-bot"
-  cp /root/script/whatsapp-bot/whatsbotservis.sh "/root/script/node$i/whatsapp-bot/"
-done
+
 
 echo "✅ العملية تمت بنجاح: السكربتات جاهزة ومجلدات منظمة."
