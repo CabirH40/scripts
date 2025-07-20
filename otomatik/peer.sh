@@ -6,7 +6,7 @@ do
     WORKDIR="/root/.humanode/workspaces/default"
   else
     NODE_NUM=$((i - 1))
-    WORKDIR="/node$NODE_NUM/.humanode/workspaces/default"
+    WORKDIR="/home/node$NODE_NUM/.humanode/workspaces/default"
   fi
 
   cat <<EOF > /etc/systemd/system/humanode$i.service
