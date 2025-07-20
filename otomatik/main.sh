@@ -26,6 +26,7 @@ wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/otomatik/peer.sh
 wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/otomatik/port-ayar.sh
 wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/otomatik/script.sh
 wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/otomatik/whatsbotservis.sh
+wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/otomatik/configure_nodes.sh
 
 # 🏃‍♂️ 5) تشغيل السكربتات مرة واحدة (تأكد أنها قابلة للتنفيذ)
 chmod +x *.sh
@@ -33,5 +34,7 @@ chmod +x *.sh
 ./checkpeer.sh
 ./peer.sh
 ./port-ayar.sh
+./whatsbotservis.sh
+./configure_nodes.sh
 
 echo "✅ العملية تمت بنجاح: المستخدمين تم إنشاؤهم والسكربتات تم تحميلها وتشغيلها."
