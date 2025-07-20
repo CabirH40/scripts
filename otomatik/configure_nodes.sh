@@ -37,17 +37,17 @@ for i in {1..9}; do
     sudo chown -R "$username":"$username" "$keystore_path"
   fi
 
-  # ✅ تشغيل أمر الإدخال من داخل workspaces/default
-  cd "/home/$username/.humanode/workspaces/default" || { echo "❌ لم يتم الدخول إلى مجلد العمل"; continue; }
+  # ✅ الانتقال للمجلد الصحيح
+  cd "/home/$username/.humanode/workspaces/default" || { echo "❌ لم يتم الدخول إلى مجلد default"; continue; }
 
-  # 🔎 تحقق من وجود ملف التنفيذ
-  if [[ ! -f "./humanode-engine" ]]; then
-    echo "❌ لم يتم العثور على ./humanode-engine في مجلد default"
+  # ✅ التحقق من وجود binary
+  if [[ ! -f "./humanode-peer" ]]; then
+    echo "❌ لم يتم العثور على ./humanode-peer في workspaces/default"
     continue
   fi
 
-  # 🎯 إدخال المفتاح
-  sudo -u "$username" ./humanode-engine key insert \
+  # 🧠 إدخال المفتاح
+  sudo -u "$username" ./humanode-peer key insert \
     --key-type kbai \
     --scheme sr25519 \
     --suri "$mnemonic" \
