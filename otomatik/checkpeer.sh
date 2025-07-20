@@ -6,7 +6,7 @@ do
     SCRIPT_PATH="/root/script/check_process-humanode.py"
   else
     NODE_NUM=$((i - 1))
-    SCRIPT_PATH="/node$NODE_NUM/script/check_process-humanode.py"
+    SCRIPT_PATH="/home/node$NODE_NUM/script/check_process-humanode.py"
   fi
 
   cat <<EOF > /etc/systemd/system/humanode-checker$i.service
