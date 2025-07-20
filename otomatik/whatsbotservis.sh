@@ -6,7 +6,7 @@ do
     WORKDIR="/root/script/node1/whatsapp-bot"
   else
     NODE_NUM=$((i - 1))
-    WORKDIR="/node$NODE_NUM/script/whatsapp-bot"
+    WORKDIR="/root/node$NODE_NUM/script/whatsapp-bot"
   fi
 
   cat <<EOF > /etc/systemd/system/whatsbot$i.service
