@@ -1,17 +1,11 @@
 #!/bin/bash
 
-for i in {1..10}
-do
-  if [ $i -eq 1 ]; then
-    WORKDIR="/root/.humanode/workspaces/default"
-  else
-    NODE_NUM=$((i - 1))
-    WORKDIR="/home/node$NODE_NUM/.humanode/workspaces/default"
-  fi
+# 🔧 1) إنشاء humanode.service لـ root
+WORKDIR="/root/.humanode/workspaces/default"
 
-  cat <<EOF > /etc/systemd/system/humanode$i.service
+cat <<EOF > /etc/systemd/system/humanode.service
 [Unit]
-Description=Humanode Root Node $i
+Description=Humanode Root Node
 After=network.target
 
 [Service]
@@ -31,16 +25,49 @@ StartLimitInterval=0
 WantedBy=multi-user.target
 EOF
 
+echo "✅ تم إنشاء humanode.service (لـ root)"
+
+# 🔁 2) إنشاء humanode1.service إلى humanode9.service
+for i in {1..9}; do
+  USERNAME="node$i"
+  WORKDIR="/home/$USERNAME/.humanode/workspaces/default"
+
+  cat <<EOF > /etc/systemd/system/humanode$i.service
+[Unit]
+Description=Humanode Node $i
+After=network.target
+
+[Service]
+User=$USERNAME
+WorkingDirectory=$WORKDIR
+ExecStart=$WORKDIR/run-node.sh
+
+MemoryMax=1536M
+CPUQuota=80%
+LimitNOFILE=1048576
+
+Restart=always
+RestartSec=5
+StartLimitInterval=0
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  echo "✅ تم إنشاء humanode$i.service"
 done
 
-echo "✅ تمت إنشاء ملفات الخدمات لـ Humanode Node 1 إلى 10."
+# 🔄 3) إعادة تحميل systemd وتشغيل الخدمات
 echo "♻️ عمل إعادة تحميل لـ systemd..."
 systemctl daemon-reload
 
-for i in {1..10}
-do
+# 🚀 4) تفعيل وتشغيل جميع الخدمات
+echo "🚀 تفعيل وتشغيل humanode.service"
+systemctl enable --now humanode.service
+
+for i in {1..9}; do
   echo "🚀 تفعيل وتشغيل humanode$i.service"
   systemctl enable --now humanode$i.service
 done
 
-echo "🎉 كل النودات اشتغلت وتفعلت ✔️"
+echo "🎉 كل الخدمات اشتغلت وتفعلت ✔️"
