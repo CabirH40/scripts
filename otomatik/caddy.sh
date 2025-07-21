@@ -1,46 +1,63 @@
 #!/bin/bash
 
-# 🛡️ تأكد من وجود الأدوات
-command -v curl >/dev/null || { echo "curl غير مثبت. الرجاء تثبيته أولاً."; exit 1; }
+# 🛡️ تأكد من وجود curl
+command -v curl >/dev/null || { echo "❌ curl غير مثبت. الرجاء تثبيته أولاً."; exit 1; }
 
 # 📝 مسار Caddyfile
 CADDYFILE_PATH="/etc/caddy/Caddyfile"
 
+# ⚙️ تأكد من وجود الملف
+sudo mkdir -p /etc/caddy
+sudo touch $CADDYFILE_PATH
+
 # 🧹 تفريغ ملف Caddyfile
 sudo bash -c "echo '' > $CADDYFILE_PATH"
 
-# 🌍 استخراج آخر رقمين من الـ IP (Octet 3 و 4)
+# 🌍 الحصول على IP واستخراج Octets
 IP=$(curl -4 -s https://api.ipify.org)
-OCTETS=$(echo "$IP" | cut -d '.' -f 3,4 | tr '.' '-')
+OCTET_3=$(echo "$IP" | cut -d '.' -f 3)
+OCTET_4=$(echo "$IP" | cut -d '.' -f 4)
+BASE_DOMAIN="${OCTET_3}-${OCTET_4}"
 
-# 📄 إنشاء reverse_proxy للـ Root أولاً
-sudo bash -c "echo \"${OCTETS}.cabirh2000.uk {
+# 📝 إعداد الدومين الرئيسي
+MAIN_DOMAIN="${BASE_DOMAIN}.cabirh2000.uk"
+sudo bash -c "cat >> $CADDYFILE_PATH" <<EOF
+$MAIN_DOMAIN {
     reverse_proxy 127.0.0.1:9944
-}\" >> $CADDYFILE_PATH"
+}
+EOF
 
-# 💾 إنشاء رابط للـ Root
+# 💾 حفظ رابط النود الرئيسي
 mkdir -p /root/link
-echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F${OCTETS}.cabirh2000.uk" > /root/link/link.txt
+echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F$MAIN_DOMAIN" > /root/link/link.txt
 
-# 🔁 إنشاء لـ Node1 - Node9
+# 🔁 إنشاء روابط node1 إلى node9
 for i in {1..9}; do
-  # زيادة على آخر خانة للـ IP
-  LAST_OCTET=$(echo "$IP" | cut -d '.' -f 4)
-  NEW_LAST_OCTET=$(( LAST_OCTET + $i ))
-  DOMAIN="36-${NEW_LAST_OCTET}.cabirh2000.uk"
-  RPC_PORT=$((9944 + $i))
-  
+  DOMAIN="${BASE_DOMAIN}${i}.cabirh2000.uk"
+  RPC_PORT=$((9944 + i))
+
   # ✏️ كتابة في Caddyfile
-  sudo bash -c "echo \"${DOMAIN} {
-    reverse_proxy 127.0.0.1:${RPC_PORT}
-}\" >> $CADDYFILE_PATH"
-  
-  # 💾 حفظ رابط الـ WebApp للنود
-  mkdir -p /root/script/node${i}/link
-  echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F${DOMAIN}" > /root/script/node${i}/link/link.txt
+  sudo bash -c "cat >> $CADDYFILE_PATH" <<EOF
+$DOMAIN {
+    reverse_proxy 127.0.0.1:$RPC_PORT
+}
+EOF
+
+  # 📁 إنشاء مجلد الرابط
+  NODE_LINK_DIR="/root/script/node${i}/link"
+  mkdir -p "$NODE_LINK_DIR"
+
+  # 💾 حفظ الرابط
+  LINK="https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F${DOMAIN}"
+  echo "$LINK" > "$NODE_LINK_DIR/link.txt"
 done
 
 # 🔄 إعادة تشغيل Caddy
-sudo systemctl restart caddy
+sudo systemctl restart caddy && echo "✅ تم إعادة تشغيل Caddy." || echo "❌ فشل في إعادة تشغيل Caddy."
 
-echo "✅ تم إنشاء Caddyfile وتوليد الروابط لكل النودات."
+# 📄 عرض كل الروابط
+echo -e "\n📄 روابط النودات:"
+echo "Root: $(cat /root/link/link.txt)"
+for i in {1..9}; do
+  echo "Node$i: $(cat /root/script/node${i}/link/link.txt)"
+done
