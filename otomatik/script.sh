@@ -1,48 +1,71 @@
 #!/bin/bash
 
 # Telegram bot details
-telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVgXNWg'
+telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
 telegram_group='-1002175706144'
 telegram_user_tag="@CabirH2000 @testnetsever"
-workspace_file="/root/.humanode/workspaces/default/workspace.json"
-run_node_script="/root/.humanode/workspaces/default/run-node.sh"
-process_name="humanode-peer"
-nodename=$(jq -r '.nodename' "$workspace_file")
-server_ip=$(curl -s https://api.ipify.org)
 telegram_bot="https://api.telegram.org/bot${telegram_token}/sendMessage"
 
-# استخراج البورت من سكربت التشغيل
-rpc_port=$(grep -- '--rpc-port' "$run_node_script" | grep -oP '\d+')
+# Define all node configurations: path_to_workspace:rpc_port
+declare -A nodes=(
+  ["/root/.humanode/workspaces/default/workspace.json"]="9944"
+  ["/home/node1/.humanode/workspaces/default/workspace.json"]="9945"
+  ["/home/node2/.humanode/workspaces/default/workspace.json"]="9946"
+  ["/home/node3/.humanode/workspaces/default/workspace.json"]="9947"
+  ["/home/node4/.humanode/workspaces/default/workspace.json"]="9948"
+  ["/home/node5/.humanode/workspaces/default/workspace.json"]="9949"
+  ["/home/node6/.humanode/workspaces/default/workspace.json"]="9950"
+  ["/home/node7/.humanode/workspaces/default/workspace.json"]="9951"
+  ["/home/node8/.humanode/workspaces/default/workspace.json"]="9952"
+  ["/home/node9/.humanode/workspaces/default/workspace.json"]="9953"
+)
 
-# إذا مشغل الحومانود ولا لا
-if ! pgrep -x "$process_name" > /dev/null; then
-    exit 0
-fi
+# Loop through all nodes
+for workspace_file in "${!nodes[@]}"; do
+    rpc_port="${nodes[$workspace_file]}"
+    process_name="humanode-peer"
 
-# جلب رابط الأوثنتيكيشن
-auth_url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
-
-# استعلام الحالة من البورت المستخرج
-status=$(curl -s http://127.0.0.1:${rpc_port} -X POST -H "Content-Type: application/json" \
-    -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
-
-if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == '"inactive"' ]; then
-    message="🚨${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
-else
-    current_timestamp=$(date +%s)
-    expires_at=$(curl -s http://127.0.0.1:${rpc_port} -X POST -H "Content-Type: application/json" \
-        -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
-    difference=$(( (expires_at / 1000 - current_timestamp) / 60 ))
-
-    if (( difference > 25 && difference < 31 )); then
-        message="🟡 ${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
-    elif (( difference > 0 && difference < 6 )); then
-        message="🔴 ${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
-    else
-        message="NULL"
+    # Skip if workspace file doesn't exist
+    if [ ! -f "$workspace_file" ]; then
+        echo "⚠️ File $workspace_file not found, skipping..."
+        continue
     fi
-fi
 
-if [ "$message" != "NULL" ]; then
-    curl -X POST -H "Content-Type:multipart/form-data" -F chat_id=${telegram_group} -F text="${message}" ${telegram_bot}
-fi
+    nodename=$(jq -r '.nodename' "$workspace_file")
+    server_ip=$(curl -s https://api.ipify.org)
+
+    # Check if humanode-peer is running
+    if ! pgrep -x "$process_name" > /dev/null; then
+        echo "ℹ️ $nodename ($workspace_file): process not running, skipping..."
+        continue
+    fi
+
+    # Get auth URL
+    auth_url="$(dirname "$workspace_file")/../.././humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain $(dirname "$workspace_file")/../../chainspec.json"
+    auth_url=$($auth_url 2>/dev/null)
+
+    # Get bioauth status
+    status=$(curl -s "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
+        -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
+
+    if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == '"inactive"' ]; then
+        message="🚨 ${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
+    else
+        current_timestamp=$(date +%s)
+        expires_at=$(curl -s "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
+            -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
+        difference=$(( (expires_at / 1000 - current_timestamp) / 60 ))
+
+        if (( difference > 25 && difference < 31 )); then
+            message="🟡 ${nodename} humanode (${server_ip}) will be deactivated in 30 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
+        elif (( difference > 0 && difference < 6 )); then
+            message="🔴 ${nodename} humanode (${server_ip}) will be deactivated in 5 minutes, please prepare for re-authentication ${telegram_user_tag} ${auth_url}"
+        else
+            message="NULL"
+        fi
+    fi
+
+    if [ "$message" != "NULL" ]; then
+        curl -X POST -H "Content-Type:multipart/form-data" -F chat_id=${telegram_group} -F text="${message}" ${telegram_bot}
+    fi
+done
