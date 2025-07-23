@@ -20,7 +20,7 @@ else
     apt install python3-pip -y
 fi
 
-# التحقق من وجود المكتبات المطلوبة
+# التحقق من وجود مكتبات Python المطلوبة
 echo "🔍 التحقق من مكتبات Python المطلوبة..."
 
 for package in paramiko schedule requests pytz; do
@@ -28,13 +28,13 @@ for package in paramiko schedule requests pytz; do
         echo "✅ المكتبة $package مثبتة."
     else
         echo "📦 تثبيت المكتبة $package باستخدام --break-system-packages..."
-        pip3 install "$package" --break-system-packages
+        pip3 install "$package" --break-system-packages --no-cache-dir
     fi
 done
 
-echo "🎉 تم التحقق من جميع المتطلبات."
-
-# إفراغ ملف logs.txt
+# 🧹 تنظيف سجل اللوجات
 > /root/.humanode/workspaces/default/node/logs.txt
+
+echo "🎉 تم التحقق من جميع المتطلبات وتثبيت المكتبات بنجاح."
 
 exit
