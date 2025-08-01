@@ -40,9 +40,19 @@ for workspace_file in "${!nodes[@]}"; do
         continue
     fi
 
-    # Get auth URL
-    auth_url="$(dirname "$workspace_file")/../.././humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain $(dirname "$workspace_file")/../../chainspec.json"
-    auth_url=$($auth_url 2>/dev/null)
+    # Get auth URL from local file
+    if [ "$workspace_file" == "/root/.humanode/workspaces/default/workspace.json" ]; then
+        auth_url=$(cat /root/script/link/link.txt 2>/dev/null)
+    else
+        node_number=$(echo "$workspace_file" | grep -oP 'node\K[0-9]+')
+        auth_url=$(cat "/root/script/node${node_number}/link/link.txt" 2>/dev/null)
+    fi
+
+    # If no auth_url found, skip this node
+    if [ -z "$auth_url" ]; then
+        echo "❌ No auth_url found for $nodename, skipping..."
+        continue
+    fi
 
     # Get bioauth status
     status=$(curl -s "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
