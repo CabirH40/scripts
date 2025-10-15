@@ -13,8 +13,8 @@ User=root
 WorkingDirectory=$WORKDIR
 ExecStart=$WORKDIR/run-node.sh
 
-MemoryMax=1536M
-CPUQuota=80%
+MemoryMax=1024M
+CPUQuota=75%
 LimitNOFILE=1048576
 
 Restart=always
