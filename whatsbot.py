@@ -20,7 +20,7 @@ CHAT_ID = "-1002517987939"
 # المسارات والثوابت
 workspace_file = Path("/root/.humanode/workspaces/default/workspace.json")
 remote_file_path = "/root/whatsapp-bot/what.txt"
-remote_ip = "152.53.84.199"
+remote_ip = "5.180.81.233"
 remote_user = "root"
 remote_password = "4Y8z1eblEJ"
 
@@ -152,7 +152,7 @@ def send_message_to_server(message, phone):
 
 def fetch_phone_number(nodename):
     try:
-        res = requests.get(f"http://152.53.84.199/read_csv.php?node={nodename}")
+        res = requests.get(f"http://5.180.81.233/read_csv.php?node={nodename}")
         data = res.json()
         return data.get("phone")
     except Exception as e:
