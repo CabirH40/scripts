@@ -46,7 +46,7 @@ for workspace_file in "${!nodes[@]}"; do
     if [ "$workspace_file" == "/root/.humanode/workspaces/default/workspace.json" ]; then
         auth_url=$(cat /root/script/link/link.txt 2>/dev/null)
     else
-        node_number=$(echo "$workspace_file" | grep -oP 'node\K[0-9]+')
+        node_number=$(echo "$workspace_file" | grep -oP 'node\K[0-11]+')
         auth_url=$(cat "/root/script/node${node_number}/link/link.txt" 2>/dev/null)
     fi
 
