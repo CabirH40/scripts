@@ -50,7 +50,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل humanode-checker.service"
 systemctl enable --now humanode-checker.service
 
-for i in {1..9}; do
+for i in {10..11}; do
   echo "🚀 تفعيل وتشغيل humanode-checker$i.service"
   systemctl enable --now humanode-checker$i.service
 done
