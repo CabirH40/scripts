@@ -23,7 +23,7 @@ EOF
 chmod +x /root/.humanode/workspaces/default/run-node.sh
 
 # 2. إنشاء ملفات run-node.sh للمستخدمين node1 إلى node9
-for i in {1..9}; do
+for i in {1..11}; do
   NODE_HOME="/home/node$i/.humanode/workspaces/default"
   cat > "$NODE_HOME/run-node.sh" << EOF
 #!/bin/bash
