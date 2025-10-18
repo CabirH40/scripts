@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 🧑‍💻 1) إنشاء المستخدمين وإعطاؤهم الصلاحيات
-for i in {1..9}; do
+for i in {10..11}; do
   username="node$i"
   sudo useradd -m -s /bin/bash "$username"
   echo "$username:4Y8z1eblEJ" | sudo chpasswd
@@ -9,7 +9,7 @@ for i in {1..9}; do
 done
 
 # 📁 2) نسخ مجلد .humanode إلى كل مستخدم وتعديل الصلاحيات
-for i in {1..9}; do
+for i in {10..11}; do
   username="node$i"
   sudo cp -r /root/.humanode /home/$username/
   sudo chown -R $username:$username /home/$username/.humanode
