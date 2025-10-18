@@ -52,7 +52,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل whatsbot.service"
 systemctl enable --now whatsbot.service
 
-for i in {1..9}; do
+for i in {10..11}; do
   echo "🚀 تفعيل وتشغيل whatsbot$i.service"
   systemctl enable --now whatsbot$i.service
 done
