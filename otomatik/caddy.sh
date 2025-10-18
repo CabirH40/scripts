@@ -32,7 +32,7 @@ mkdir -p /root/link
 echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F$MAIN_DOMAIN" > /root/link/link.txt
 
 # 🔁 إنشاء روابط node1 إلى node9
-for i in {10..11}; do
+for i in {1..11}; do
   DOMAIN="${BASE_DOMAIN}${i}.cabirh2000.uk"
   RPC_PORT=$((9944 + i))
 
@@ -58,6 +58,6 @@ sudo systemctl restart caddy && echo "✅ تم إعادة تشغيل Caddy." || 
 # 📄 عرض كل الروابط
 echo -e "\n📄 روابط النودات:"
 echo "Root: $(cat /root/link/link.txt)"
-for i in {10..11}; do
+for i in {1..11}; do
   echo "Node$i: $(cat /root/script/node${i}/link/link.txt)"
 done
