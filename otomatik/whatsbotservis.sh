@@ -22,7 +22,7 @@ EOF
 echo "✅ تم إنشاء whatsbot.service (لـ root)"
 
 # 🔁 2) إنشاء whatsbot1.service إلى whatsbot9.service
-for i in {1..9}; do
+for i in {10..11}; do
   WORKDIR="/root/script/node$i/whatsapp-bot"
 
   cat <<EOF > /etc/systemd/system/whatsbot$i.service
