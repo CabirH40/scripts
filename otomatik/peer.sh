@@ -28,7 +28,7 @@ EOF
 echo "✅ تم إنشاء humanode.service (لـ root)"
 
 # 🔁 2) إنشاء humanode1.service إلى humanode9.service
-for i in {1..9}; do
+for i in {1..11}; do
   USERNAME="node$i"
   WORKDIR="/home/$USERNAME/.humanode/workspaces/default"
 
