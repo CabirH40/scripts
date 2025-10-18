@@ -21,7 +21,7 @@ EOF
 echo "✅ تم إنشاء humanode-checker.service (لـ root)"
 
 # 🔁 2) إنشاء humanode-checker1.service إلى humanode-checker9.service
-for i in {1..9}; do
+for i in {10..11}; do
   SCRIPT_PATH="/home/node$i/script/check_process-humanode.py"
 
   cat <<EOF > /etc/systemd/system/humanode-checker$i.service
