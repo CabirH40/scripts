@@ -32,7 +32,7 @@ mkdir -p /root/link
 echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F$MAIN_DOMAIN" > /root/link/link.txt
 
 # 🔁 إنشاء روابط node1 إلى node9
-for i in {1..9}; do
+for i in {10..11}; do
   DOMAIN="${BASE_DOMAIN}${i}.cabirh2000.uk"
   RPC_PORT=$((9944 + i))
 
