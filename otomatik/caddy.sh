@@ -58,6 +58,6 @@ sudo systemctl restart caddy && echo "✅ تم إعادة تشغيل Caddy." || 
 # 📄 عرض كل الروابط
 echo -e "\n📄 روابط النودات:"
 echo "Root: $(cat /root/link/link.txt)"
-for i in {1..9}; do
+for i in {10..11}; do
   echo "Node$i: $(cat /root/script/node${i}/link/link.txt)"
 done
