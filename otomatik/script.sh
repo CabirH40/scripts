@@ -18,6 +18,8 @@ declare -A nodes=(
   ["/home/node7/.humanode/workspaces/default/workspace.json"]="9951"
   ["/home/node8/.humanode/workspaces/default/workspace.json"]="9952"
   ["/home/node9/.humanode/workspaces/default/workspace.json"]="9953"
+  ["/home/node10/.humanode/workspaces/default/workspace.json"]="9954"
+  ["/home/node11/.humanode/workspaces/default/workspace.json"]="9955"
 )
 
 # Loop through all nodes
