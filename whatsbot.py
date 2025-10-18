@@ -35,12 +35,12 @@ phone = "905312395611"
 auth_url = "Unavailable"
 monitoring_auth_url = False
 
-# جلب IP الحالي
+# جلب IPv4 الحالي حصراً
 try:
-    server_ip = requests.get("https://ifconfig.me").text
+    server_ip = requests.get("https://ipv4.icanhazip.com", timeout=5).text.strip()
 except Exception as e:
     server_ip = "unknown"
-    logging.error(f"❌ فشل في الحصول على IP: {e}")
+    logging.error(f"❌ فشل في الحصول على IPv4: {e}")
 
 def send_telegram_error(message):
     try:
@@ -89,8 +89,6 @@ def monitor_auth_url_updates():
                 #send_message_to_server(f"⏰ ({get_nodename()}) - {current_url} - تم تحديث رابط التوثيق", phone)
     except Exception as e:
         send_telegram_error(f"🧨 خطأ أثناء مراقبة الرابط المبكر:\n{e}")
-
-
 
 def get_nodename():
     try:
@@ -167,21 +165,20 @@ def update_phone_if_needed():
         phone = new_phone
         logging.info(f"📞 تم تحديث رقم الهاتف: {phone}")
 
-
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
     return f"{nodename}  - 🤭 يجب التصوير في الوقت المكتوب تماما: ({time_str}) - {auth_url}"
+
 def handle_status_and_alerts2():
     global monitoring_auth_url
-
     expires_at, status = get_status()
     current_time = int(time.time())
     diff = expires_at - current_time
-
     if diff < 7000 and not monitoring_auth_url:
         logging.info("🤭 بقي أكثر من 10 دقائق، بدء مراقبة الرابط المبكر...")
         threading.Thread(target=monitor_auth_url_updates, daemon=True).start()
+
 def handle_status_and_alerts():
     global last_expires_at, alert_5_sent, alert_30_sent, alert_4_sent, alert_sent
     global last_alert_time, last_status, alert_missed_count, missed_alert_last_time, auth_url
@@ -196,14 +193,12 @@ def handle_status_and_alerts():
 
     if time.time() - last_alert_time > 20:
         if 0 <= diff < 310 and not alert_5_sent:
-#            monitor_auth_url_updates()
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
             msg = format_message(5, expires_at)
             alert_5_sent = True
         elif 310 <= diff < 1810 and not alert_30_sent:
-#            monitor_auth_url_updates()
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
@@ -212,7 +207,6 @@ def handle_status_and_alerts():
             msg = format_message(30, expires_at)
             alert_30_sent = True
         elif 1810 <= diff < 6400 and not alert_4_sent:
-#            monitor_auth_url_updates()
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
@@ -224,7 +218,6 @@ def handle_status_and_alerts():
 
     if status == "Inactive" and not alert_sent and alert_missed_count < 3:
         if missed_alert_last_time == 0 or current_time - missed_alert_last_time >= 600:
-#            monitor_auth_url_updates()
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
@@ -240,7 +233,6 @@ def handle_status_and_alerts():
         send_message_to_server(f"🎉 {nodename} ✅ 😍🫡تم التوثيق بنجاح! نراك بعد أسبوع إن شاء الله.😍🫡", phone)
         success_msg = f"🎉 {nodename} ✅ تم التوثيق بنجاح!"
         send_telegram_error(success_msg)
-
         alert_sent = True
 
     last_status = status
