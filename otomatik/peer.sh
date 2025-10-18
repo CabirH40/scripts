@@ -65,7 +65,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل humanode.service"
 systemctl enable --now humanode.service
 
-for i in {1..9}; do
+for i in {10..11}; do
   echo "🚀 تفعيل وتشغيل humanode$i.service"
   systemctl enable --now humanode$i.service
 done
