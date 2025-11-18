@@ -22,7 +22,7 @@ workspace_file = Path("/root/.humanode/workspaces/default/workspace.json")
 remote_file_path = "/root/whatsapp-bot/what.txt"
 remote_ip = "5.180.81.233"
 remote_user = "root"
-remote_password = "Gorahal123!"
+remote_password = "Gorahal"
 
 # متغيرات حالة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
