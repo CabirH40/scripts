@@ -30,7 +30,7 @@ OCTET_4=$(echo "$IP" | cut -d '.' -f 4)
 BASE_DOMAIN="${OCTET_3}-${OCTET_4}"
 
 # 📝 إعداد الدومين الرئيسي
-MAIN_DOMAIN="${BASE_DOMAIN}.cabirh2000.uk"
+MAIN_DOMAIN="${BASE_DOMAIN}.gorahal.com"
 cat >> "$CADDYFILE_PATH" <<EOF
 $MAIN_DOMAIN {
     reverse_proxy 127.0.0.1:9944
@@ -41,9 +41,9 @@ EOF
 mkdir -p /root/link
 echo "https://webapp.mainnet.stages.humanode.io/humanode/wss%3A%2F%2F$MAIN_DOMAIN" > /root/link/link.txt
 
-# 🔁 إنشاء روابط node1 إلى node9
+# 🔁 إنشاء روابط node1 إلى node11
 for i in {1..11}; do
-  DOMAIN="${BASE_DOMAIN}${i}.cabirh2000.uk"
+  DOMAIN="${BASE_DOMAIN}${i}.gorahal.com"
   RPC_PORT=$((9944 + i))
 
   # ✏️ كتابة في Caddyfile
