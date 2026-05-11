@@ -2,7 +2,6 @@ import os
 import json
 import requests
 import time
-import paramiko
 import schedule
 import pytz
 import logging
@@ -23,6 +22,8 @@ remote_file_path = "/root/whatsapp-bot/what.txt"
 remote_ip = "5.180.81.233"
 remote_user = "root"
 remote_password = "Gorahal"
+queue_api_url = "https://whatsbot.gorahal.com/queue-message"
+queue_api_token = "b6f99bbdfc8374264457f080a6065c63075f454d0179ac0ab3bb48e8074ace09"
 
 # متغيرات حالة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
@@ -129,28 +130,27 @@ schedule.every().day.at("02:00").do(reset_alerts)
 
 def send_message_to_server(message, phone):
     try:
-        full_message = f"{phone} {message}"
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(remote_ip, username=remote_user, password=remote_password)
-        sftp = ssh.open_sftp()
-        try:
-            with sftp.open(remote_file_path, 'r') as f:
-                old_content = f.read().decode()
-        except:
-            old_content = ""
-        with sftp.open(remote_file_path, 'w') as f:
-            f.write(full_message + "\n" + old_content)
-        sftp.close()
-        ssh.close()
-        logging.info("📨 تم إرسال الرسالة بنجاح")
+        payload = {
+            "phone": str(phone),
+            "message": str(message)
+        }
+        headers = {
+            "Authorization": f"Bearer {queue_api_token}",
+            "Content-Type": "application/json"
+        }
+        res = requests.post(queue_api_url, headers=headers, json=payload, timeout=10)
+        if res.status_code >= 200 and res.status_code < 300:
+            logging.info("📨 تم إرسال الرسالة بنجاح عبر API")
+        else:
+            logging.error(f"❌ API send failed: {res.status_code} {res.text}")
+            send_telegram_error(f"❌ API send failed: {res.status_code}")
     except Exception as e:
-        logging.error(f"💥 خطأ في إرسال الرسالة عبر SFTP: {e}")
-        send_telegram_error(f"💥 خطأ في إرسال الرسالة عبر SFTP: {e}")
+        logging.error(f"💥 خطأ في إرسال الرسالة عبر API: {e}")
+        send_telegram_error(f"💥 خطأ في إرسال الرسالة عبر API: {e}")
 
 def fetch_phone_number(nodename):
     try:
-        res = requests.get(f"http://5.180.81.233/read_csv.php?node={nodename}")
+        res = requests.get(f"http://whatsbot.gorahal.com/read_csv?node={nodename}", timeout=8)
         data = res.json()
         return data.get("phone")
     except Exception as e:
