@@ -14,7 +14,7 @@ curl -fsSL "https://raw.githubusercontent.com/CabirH40/scripts/main/certs/origin
 # 🌍 استخراج آخر رقمين من IP
 IP=$(curl -4 -s https://api.ipify.org)
 OCTETS=$(echo "$IP" | cut -d '.' -f 3,4 | tr '.' '-')
-DOMAIN="${OCTETS}.cabirh2000.uk"
+DOMAIN="${OCTETS}.gorahal.com"
 
 # ⚙️ تحديد مسار ملف Caddyfile
 CADDYFILE_PATH="/etc/caddy/Caddyfile"
