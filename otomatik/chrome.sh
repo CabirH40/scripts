@@ -1,6 +1,11 @@
 #!/bin/bash
 set -euo pipefail
 
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
+
 # ================================
 # Chromium (single container) + Host Caddy reverse proxy
 # Domain served by host Caddy (no www)
@@ -60,7 +65,8 @@ else
 fi
 
 groupadd docker 2>/dev/null || true
-usermod -aG docker "$USER" || true
+TARGET_USER="${SUDO_USER:-root}"
+usermod -aG docker "$TARGET_USER" || true
 
 # ---- DNS sanity check ----
 if ! getent ahostsv4 "$DOMAIN" >/dev/null; then
@@ -120,8 +126,9 @@ if command -v caddy >/dev/null 2>&1; then
   echo "[*] Configuring host Caddy..."
   cp /etc/caddy/Caddyfile /etc/caddy/Caddyfile.bak.$(date +%s) 2>/dev/null || true
 
-  # append (no www)
-  cat >> /etc/caddy/Caddyfile <<EOF
+  # append (no www) only if domain block is not already present
+  if ! grep -qE "^${DOMAIN//./\\.}[[:space:]]*\\{" /etc/caddy/Caddyfile; then
+    cat >> /etc/caddy/Caddyfile <<EOF
 
 # Chromium UI via ${DOMAIN}
 ${DOMAIN} {
@@ -133,6 +140,7 @@ ${DOMAIN} {
     }
 }
 EOF
+  fi
 
   caddy validate --config /etc/caddy/Caddyfile
   systemctl reload caddy

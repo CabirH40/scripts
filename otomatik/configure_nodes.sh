@@ -1,6 +1,12 @@
 #!/bin/bash
+set -euo pipefail
 
-for i in {10..11}; do
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
+
+for i in {1..11}; do
   echo "==============================="
   echo "🔧 إعداد node$i"
   echo "==============================="
@@ -20,7 +26,7 @@ for i in {10..11}; do
   fi
 
   # 📝 تعديل اسم النود داخل ملف JSON
-  sudo sed -i 's/"nodename":"[^"]*"/"nodename":"'"$nodename"'"/' "$workspace_json"
+  sed -i 's/"nodename":"[^"]*"/"nodename":"'"$nodename"'"/' "$workspace_json"
   echo "✅ تم تعديل اسم النود في $workspace_json"
 
   # 🔑 طلب 12 كلمة
@@ -29,12 +35,12 @@ for i in {10..11}; do
   # 🧹 حذف محتويات keystore
   keystore_path="/home/$username/.humanode/workspaces/default/substrate-data/chains/humanode_mainnet/keystore"
   if [[ -d "$keystore_path" ]]; then
-    sudo rm -rf "$keystore_path"/*
+    rm -rf "$keystore_path"/*
     echo "🧹 تم حذف محتويات keystore"
   else
     echo "⚠️ لم يتم العثور على مجلد keystore، جاري إنشاؤه..."
-    sudo mkdir -p "$keystore_path"
-    sudo chown -R "$username":"$username" "$keystore_path"
+    mkdir -p "$keystore_path"
+    chown -R "$username":"$username" "$keystore_path"
   fi
 
   # ✅ الانتقال للمجلد الصحيح
@@ -47,7 +53,7 @@ for i in {10..11}; do
   fi
 
   # 🧠 إدخال المفتاح
-  sudo -u "$username" ./humanode-peer key insert \
+  runuser -u "$username" -- ./humanode-peer key insert \
     --key-type kbai \
     --scheme sr25519 \
     --suri "$mnemonic" \
@@ -58,4 +64,4 @@ for i in {10..11}; do
   echo
 done
 
-echo "🎉 تم الانتهاء من إعداد كل النودات من node1 إلى node9!"
+echo "🎉 تم الانتهاء من إعداد كل النودات من node1 إلى node11!"
