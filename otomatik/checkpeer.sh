@@ -1,4 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
 
 # ✅ 1) إنشاء humanode-checker.service لـ root
 SCRIPT_PATH="/root/script/check_process-humanode.py"
@@ -20,8 +26,8 @@ EOF
 
 echo "✅ تم إنشاء humanode-checker.service (لـ root)"
 
-# 🔁 2) إنشاء humanode-checker1.service إلى humanode-checker9.service
-for i in {10..11}; do
+# 🔁 2) إنشاء خدمات node1 إلى node11
+for i in {1..11}; do
   SCRIPT_PATH="/home/node$i/script/check_process-humanode.py"
 
   cat <<EOF > /etc/systemd/system/humanode-checker$i.service
@@ -50,7 +56,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل humanode-checker.service"
 systemctl enable --now humanode-checker.service
 
-for i in {10..11}; do
+for i in {1..11}; do
   echo "🚀 تفعيل وتشغيل humanode-checker$i.service"
   systemctl enable --now humanode-checker$i.service
 done

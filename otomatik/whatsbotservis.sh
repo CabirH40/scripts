@@ -1,7 +1,13 @@
 #!/bin/bash
+set -euo pipefail
 
-# 🔧 1) إنشاء whatsbot.service (لـ root/node1)
-WORKDIR="/root/script/node1/whatsapp-bot"
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
+
+# 🔧 1) إنشاء whatsbot.service لـ root
+WORKDIR="/root/script/whatsapp-bot"
 
 cat <<EOF > /etc/systemd/system/whatsbot.service
 [Unit]
@@ -21,8 +27,8 @@ EOF
 
 echo "✅ تم إنشاء whatsbot.service (لـ root)"
 
-# 🔁 2) إنشاء whatsbot1.service إلى whatsbot9.service
-for i in {10..11}; do
+# 🔁 2) إنشاء خدمات node1 إلى node11
+for i in {1..11}; do
   WORKDIR="/root/script/node$i/whatsapp-bot"
 
   cat <<EOF > /etc/systemd/system/whatsbot$i.service
@@ -52,7 +58,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل whatsbot.service"
 systemctl enable --now whatsbot.service
 
-for i in {10..11}; do
+for i in {1..11}; do
   echo "🚀 تفعيل وتشغيل whatsbot$i.service"
   systemctl enable --now whatsbot$i.service
 done

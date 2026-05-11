@@ -1,5 +1,11 @@
 #!/bin/bash
-# سكربت لإنشاء ملفات run-node.sh لعقد Humanode (root و node1..node9)
+set -euo pipefail
+# سكربت لإنشاء ملفات run-node.sh لعقد Humanode (root و node1..node11)
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
 
 # 1. إنشاء ملف run-node.sh للمستخدم root
 cat > /root/.humanode/workspaces/default/run-node.sh << 'EOF'
@@ -22,9 +28,13 @@ EOF
 # جعل الملف قابلاً للتنفيذ
 chmod +x /root/.humanode/workspaces/default/run-node.sh
 
-# 2. إنشاء ملفات run-node.sh للمستخدمين node1 إلى node9
+# 2. إنشاء ملفات run-node.sh للمستخدمين node1 إلى node11
 for i in {1..11}; do
   NODE_HOME="/home/node$i/.humanode/workspaces/default"
+  if [[ ! -d "$NODE_HOME" ]]; then
+    echo "⚠️ Directory not found: $NODE_HOME, skipping node$i"
+    continue
+  fi
   cat > "$NODE_HOME/run-node.sh" << EOF
 #!/bin/bash
 cd $NODE_HOME
@@ -46,4 +56,4 @@ EOF
   chmod +x "$NODE_HOME/run-node.sh"
 done
 
-echo "تم إنشاء ملفات run-node.sh لجميع العقد (root و node1-node9) بنجاح."
+echo "تم إنشاء ملفات run-node.sh لجميع العقد (root و node1-node11) بنجاح."

@@ -1,4 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
 
 # 🔧 1) إنشاء humanode.service لـ root
 WORKDIR="/root/.humanode/workspaces/default"
@@ -65,7 +71,7 @@ systemctl daemon-reload
 echo "🚀 تفعيل وتشغيل humanode.service"
 systemctl enable --now humanode.service
 
-for i in {10..11}; do
+for i in {1..11}; do
   echo "🚀 تفعيل وتشغيل humanode$i.service"
   systemctl enable --now humanode$i.service
 done
