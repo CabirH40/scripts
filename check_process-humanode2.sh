@@ -1,4 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+    echo "This script must run as root." >&2
+    exit 1
+fi
 
 SERVICE_NAME="check_process-humanode.service"
 SCRIPT_PATH="/root/script/check_process-humanode.py"
@@ -13,7 +19,7 @@ echo "📦 جاري تثبيت خدمة فحص humanode..."
 
 # ✅ تحميل سكربت Python
 echo "⬇️ تحميل check_process-humanode.py..."
-wget https://github.com/CabirH40/script.sh/raw/main/check_process-humanode.py -O "$SCRIPT_PATH" && chmod +x "$SCRIPT_PATH"
+wget -q https://raw.githubusercontent.com/CabirH40/scripts/main/check_process-humanode.py -O "$SCRIPT_PATH" && chmod +x "$SCRIPT_PATH"
 
 # ✅ إنشاء ملف خدمة systemd
 echo "⚙️ إنشاء خدمة systemd..."

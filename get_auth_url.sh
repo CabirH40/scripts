@@ -1,144 +1,71 @@
 #!/bin/bash
+set -euo pipefail
 
-# تحديد عنوان RPC ثابت
-rpc_url="http://127.0.0.1:9944"
+WORKSPACE_FILE="/root/.humanode/workspaces/default/workspace.json"
+CHAINSPEC="/root/.humanode/workspaces/default/chainspec.json"
+PEER_BIN="/root/.humanode/workspaces/default/humanode-peer"
+WEBSITE_DIR="/root/script/website"
+OUTPUT_HTML="${WEBSITE_DIR}/index.html"
+RPC_URL="http://127.0.0.1:9944"
 
-# تشغيل الأمر للحصول على الرابط
-url=$(/root/.humanode/workspaces/default/./humanode-peer bioauth auth-url --rpc-url-ngrok-detect --chain /root/.humanode/workspaces/default/chainspec.json)
+mkdir -p "$WEBSITE_DIR"
 
-# جلب حالة bioauth
-bioauth_status=$(curl -s $rpc_url -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq -r '.result')
+node_name="$(jq -r '.nodename // "Unknown Node"' "$WORKSPACE_FILE" 2>/dev/null || echo "Unknown Node")"
+auth_url="Unavailable"
+status_json="$(curl -s --max-time 8 "$RPC_URL" -X POST -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' || true)"
 
-# جلب اسم العقدة من workspace.json
-workspace_file="/root/.humanode/workspaces/default/workspace.json"
-nodename=$(jq -r '.nodename' $workspace_file)
+if [ -x "$PEER_BIN" ] && [ -f "$CHAINSPEC" ]; then
+  auth_url="$(timeout 20 "$PEER_BIN" bioauth auth-url --rpc-url-ngrok-detect --chain "$CHAINSPEC" 2>/dev/null || echo "Unavailable")"
+fi
 
-# إنشاء صفحة HTML
-cat <<EOF > /root/script/website/index.html
+expires_at_ms="$(echo "$status_json" | jq -r '.result.Active.expires_at // 0' 2>/dev/null || echo 0)"
+if ! [[ "$expires_at_ms" =~ ^[0-9]+$ ]]; then
+  expires_at_ms=0
+fi
+
+now_ts="$(date +%s)"
+expires_at_s=$((expires_at_ms / 1000))
+remaining_s=$((expires_at_s - now_ts))
+if (( remaining_s < 0 )); then
+  remaining_s=0
+fi
+
+days=$((remaining_s / 86400))
+hours=$(((remaining_s % 86400) / 3600))
+minutes=$(((remaining_s % 3600) / 60))
+
+if (( expires_at_s > 0 )); then
+  end_time="$(date -d "@$expires_at_s" '+%Y-%m-%d %H:%M:%S')"
+else
+  end_time="N/A"
+fi
+
+cat > "$OUTPUT_HTML" <<EOF
 <!DOCTYPE html>
 <html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Humanode</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #121212;
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin: 0;
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 20px;
-            color: #FF0000;
-        }
-        
-        p {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-        }
-
-        #link {
-            display: inline-block;
-            padding: 12px 25px;
-            background-color: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            margin-top: 30px;
-            font-size: 1.2em;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s, transform 0.3s;
-        }
-
-        #link:hover {
-            background-color: #218838;
-            transform: scale(1.05);
-        }
-
-        .warning {
-            color: #FF4500;
-            font-size: 1.4em;
-            font-weight: bold;
-            margin-top: 30px;
-        }
-
-        .time-info {
-            background-color: #333333;
-            padding: 20px;
-            margin-top: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .time-info p {
-            font-size: 1.3em;
-        }
-
-        @media (max-width: 600px) {
-            h1 {
-                font-size: 2em;
-            }
-
-            p {
-                font-size: 1em;
-            }
-
-            #link {
-                padding: 10px 20px;
-                font-size: 1em;
-            }
-
-            .time-info p {
-                font-size: 1em;
-            }
-        }
-
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Humanode</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#111; color:#fff; text-align:center; padding:20px; }
+    .box { max-width: 820px; margin: 0 auto; background:#1d1d1d; border-radius:12px; padding:20px; }
+    a { display:inline-block; margin-top:16px; padding:10px 16px; background:#2e7d32; color:#fff; text-decoration:none; border-radius:8px; }
+    .warn { color:#ff7043; }
+  </style>
 </head>
 <body>
+  <div class="box">
     <h1>مرحبًا بك في صفحة الهومانود</h1>
-    <p>هذه الصفحة تعرض رابط الخاص بك للهومانود:</p>
-    <p id="nodeName">$nodename - اسم العقدة</p>
+    <p>اسم العقدة: ${node_name}</p>
+    <p>الوقت المتبقي: ${days} يوم ${hours} ساعة ${minutes} دقيقة</p>
+    <p>وقت انتهاء التوثيق: ${end_time}</p>
+    <p class="warn">يتم تحديث هذه الصفحة تلقائيًا كل دقيقة.</p>
+    <a href="${auth_url}" target="_blank" rel="noopener noreferrer">اذهب إلى رابط التوثيق</a>
+  </div>
+</body>
+</html>
 EOF
 
-# التحقق من حالة bioauth_status
-if [[ "$bioauth_status" == "Inactive" ]]; then
-    # إذا كانت الحالة inactive، نعرض التحذير
-    echo "<p class='warning'>⚠ يجب إعادة التصوير</p>" >> /root/script/website/index.html
-    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/script/website/index.html
-else
-    # إذا لم تكن inactive (أي active أو حالة أخرى)، نحسب الوقت المتبقي
-    expires_at=$(curl -s $rpc_url -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
-
-    # تحويل expires_at إلى ثوانٍ
-    expires_at_seconds=$((expires_at / 1000))
-
-    # حساب الفرق الزمني
-    current_time=$(date +%s)
-    difference=$(( expires_at_seconds - current_time ))
-
-    # حساب الأيام، الساعات، والدقائق المتبقية
-    remaining_days=$(( difference / 86400 ))
-    remaining_hours=$(( (difference % 86400) / 3600 ))
-    remaining_minutes=$(( (difference % 3600) / 60 ))
-
-    # حساب التاريخ والوقت الذي سينتهي فيه الوقت المتبقي
-    end_time_seconds=$((current_time + difference))
-    end_time_turkey=$(TZ="Europe/Istanbul" date -d @$end_time_seconds +"%Y-%m-%d %H:%M:%S")
-
-    echo "<div class='time-info'>" >> /root/script/website/index.html
-    echo "<p>الوقت المتبقي: $remaining_days يوم $remaining_hours ساعة $remaining_minutes دقيقة</p>" >> /root/script/website/index.html
-    echo "<p>الوقت الذي سينتهي فيه: $end_time_turkey</p>" >> /root/script/website/index.html
-    echo "</div>" >> /root/script/website/index.html
-
-    # الزر يظهر عندما تكون الحالة غير inactive
-    echo "<a id='link' href='$url' target='_blank'>اذهب إلى الرابط</a>" >> /root/script/website/index.html
-fi
-
-echo "</body></html>" >> /root/script/website/index.html
+chmod 644 "$OUTPUT_HTML"

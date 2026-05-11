@@ -1,14 +1,21 @@
 #!/bin/bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
 
 # 🚫 اجعل APT غير تفاعلي تماماً
 export DEBIAN_FRONTEND=noninteractive
 
 # 🚫 منع نافذة needrestart (Pending kernel upgrade أو إعادة تشغيل خدمات)
-echo "\$nrconf{restart} = 'a';" | sudo tee /etc/needrestart/conf.d/99-auto.conf > /dev/null
+echo "\$nrconf{restart} = 'a';" > /etc/needrestart/conf.d/99-auto.conf
 
 # 📦 تثبيت جميع الحزم المطلوبة بصمت
 echo "📦 Installing required packages..."
-sudo apt-get install -y --no-install-recommends \
+apt-get update -y
+apt-get install -y --no-install-recommends \
   -o Dpkg::Options::="--force-confdef" \
   -o Dpkg::Options::="--force-confold" \
   htop ca-certificates zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev tmux \
@@ -20,17 +27,17 @@ sudo apt-get install -y --no-install-recommends \
 echo "🐳 Checking if Docker is installed..."
 if ! command -v docker &> /dev/null; then
   echo "🐳 Installing Docker..."
-  sudo mkdir -p /etc/apt/keyrings
+  mkdir -p /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-    sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 
   echo \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
     https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-  sudo apt-get update -y
-  sudo apt-get install -y --no-install-recommends \
+  apt-get update -y
+  apt-get install -y --no-install-recommends \
     -o Dpkg::Options::="--force-confdef" \
     -o Dpkg::Options::="--force-confold" \
     docker-ce docker-ce-cli containerd.io
@@ -55,8 +62,9 @@ fi
 
 # 👤 إضافة المستخدم إلى مجموعة Docker
 echo "👤 Adding user to Docker group..."
-sudo groupadd docker 2>/dev/null || true
-sudo usermod -aG docker $USER
+groupadd docker 2>/dev/null || true
+TARGET_USER="${SUDO_USER:-root}"
+usermod -aG docker "$TARGET_USER" || true
 
 # 🕒 عرض المنطقة الزمنية
 echo "🕒 Current timezone:"

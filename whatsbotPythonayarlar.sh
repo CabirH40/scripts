@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # تحديث الحزم
 echo "🔄 تحديث قائمة الحزم..."

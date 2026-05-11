@@ -1,4 +1,10 @@
 #!/bin/bash
+set -euo pipefail
+
+if [[ "${EUID}" -ne 0 ]]; then
+  echo "This script must run as root." >&2
+  exit 1
+fi
 
 SERVICE_NAME="whatsbot.service"
 SCRIPT_PATH="/root/script/whatsapp-bot/whatsbot.py"
@@ -16,7 +22,7 @@ echo "🧪 الخدمة غير موجودة أو السكربت ناقص. جار
 mkdir -p /root/script/whatsapp-bot
 
 # 2. تحميل السكربت
-wget -q -O "$SCRIPT_PATH" https://raw.githubusercontent.com/CabirH40/script.sh/main/whatsbot.py
+wget -q -O "$SCRIPT_PATH" https://raw.githubusercontent.com/CabirH40/scripts/main/whatsbot.py
 chmod +x "$SCRIPT_PATH"
 
 # 3. إنشاء ملف الخدمة

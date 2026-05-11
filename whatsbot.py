@@ -111,8 +111,8 @@ def get_status():
         elif "Inactive" in result:
             return 0, "Inactive"
         else:
-             send_telegram_error(f"🚫 فشل في جلب حالة التوثيق: {e}")
-             return 0, "Unknown"
+            send_telegram_error("🚫 فشل في جلب حالة التوثيق: نتيجة غير متوقعة من RPC")
+            return 0, "Unknown"
     except Exception as e:
         logging.warning(f"🚫 فشل في جلب حالة التوثيق: {e}")
         send_telegram_error(f"🚫 فشل في جلب حالة التوثيق: {e}")
