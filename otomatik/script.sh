@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Telegram bot details
 telegram_token='6771313174:AAGSrlGl7LnJg1ewGlaS6QO5fpL5OVXJNWg'
@@ -33,8 +34,8 @@ for workspace_file in "${!nodes[@]}"; do
         continue
     fi
 
-    nodename=$(jq -r '.nodename' "$workspace_file")
-    server_ip=$(curl -s https://api.ipify.org)
+    nodename=$(jq -r '.nodename // "unknown-node"' "$workspace_file" 2>/dev/null || echo "unknown-node")
+    server_ip=$(curl -s --max-time 8 https://api.ipify.org || echo "unknown-ip")
 
     # Check if humanode-peer is running
     if ! pgrep -x "$process_name" > /dev/null; then
@@ -44,9 +45,9 @@ for workspace_file in "${!nodes[@]}"; do
 
     # Get auth URL from local file
     if [ "$workspace_file" == "/root/.humanode/workspaces/default/workspace.json" ]; then
-        auth_url=$(cat /root/script/link/link.txt 2>/dev/null)
+        auth_url=$(cat /root/link/link.txt 2>/dev/null)
     else
-        node_number=$(echo "$workspace_file" | grep -oP 'node\K[0-11]+')
+        node_number=$(echo "$workspace_file" | grep -oP 'node\K\d+')
         auth_url=$(cat "/root/script/node${node_number}/link/link.txt" 2>/dev/null)
     fi
 
@@ -57,15 +58,17 @@ for workspace_file in "${!nodes[@]}"; do
     fi
 
     # Get bioauth status
-    status=$(curl -s "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
+    status=$(curl -s --max-time 8 "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
         -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result')
 
     if [ "$(echo "$status" | tr '[:upper:]' '[:lower:]')" == '"inactive"' ]; then
         message="🚨 ${nodename} humanode (${server_ip}) is not active, please proceed to do re-authentication ${telegram_user_tag} ${auth_url}"
     else
         current_timestamp=$(date +%s)
-        expires_at=$(curl -s "http://127.0.0.1:${rpc_port}" -X POST -H "Content-Type: application/json" \
-            -d '{"jsonrpc":"2.0","method":"bioauth_status","params":[],"id":1}' | jq '.result.Active.expires_at')
+        expires_at=$(echo "$status" | jq -r '.Active.expires_at // 0')
+        if ! [[ "$expires_at" =~ ^[0-9]+$ ]]; then
+            expires_at=0
+        fi
         difference=$(( (expires_at / 1000 - current_timestamp) / 60 ))
 
         if (( difference > 25 && difference < 31 )); then
