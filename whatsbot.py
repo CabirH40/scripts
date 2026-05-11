@@ -17,13 +17,14 @@ BOT_TOKEN = "7839318486:AAF8Jk6rqsgGlLT4KvI1EsXVs24qilPlWiQ"
 CHAT_ID = "-1002517987939"
 
 # المسارات والثوابت
-workspace_file = Path("/root/.humanode/workspaces/default/workspace.json")
-remote_file_path = "/root/whatsapp-bot/what.txt"
-remote_ip = "5.180.81.233"
-remote_user = "root"
-remote_password = "Gorahal"
-queue_api_url = "https://whatsbot.gorahal.com/queue-message"
-queue_api_token = "b6f99bbdfc8374264457f080a6065c63075f454d0179ac0ab3bb48e8074ace09"
+workspace_file = Path(os.getenv("WORKSPACE_FILE", "/root/.humanode/workspaces/default/workspace.json"))
+link_file = Path(os.getenv("LINK_FILE", "/root/link/link.txt"))
+rpc_url = os.getenv("RPC_URL", "http://127.0.0.1:9944")
+instance_name = os.getenv("INSTANCE_NAME", "root")
+api_base_url = os.getenv("WHATSBOT_API_BASE_URL", "https://whatsbot.gorahal.com").rstrip("/")
+queue_api_url = os.getenv("WHATSBOT_QUEUE_API_URL", f"{api_base_url}/queue-message")
+phone_lookup_api_url = os.getenv("WHATSBOT_PHONE_LOOKUP_API_URL", f"{api_base_url}/read_csv")
+queue_api_token = os.getenv("WHATSBOT_QUEUE_API_TOKEN", "b6f99bbdfc8374264457f080a6065c63075f454d0179ac0ab3bb48e8074ace09")
 
 # متغيرات حالة
 alert_30_sent = alert_5_sent = alert_4_sent = alert_sent = False
@@ -32,7 +33,7 @@ missed_alert_last_time = 0
 last_expires_at = 0
 last_status = None
 last_alert_time = 0
-phone = "905312395611"
+phone = "905386293162"
 auth_url = "Unavailable"
 monitoring_auth_url = False
 
@@ -60,10 +61,10 @@ def send_telegram_error(message):
 def get_live_auth_url():
     try:
         # 📄 قراءة الرابط من الملف مباشرة
-        with open("/root/link/link.txt", "r") as f:
+        with open(link_file, "r") as f:
             url = f.read().strip()
         if url.startswith("http"):
-            logging.info(f"✅ تم جلب رابط التوثيق من الملف: {url}")
+            logging.info(f"[{instance_name}] ✅ تم جلب رابط التوثيق من الملف: {url}")
             return url
         else:
             raise Exception(f"الرابط غير صالح في الملف: {url}")
@@ -103,7 +104,7 @@ def get_nodename():
 
 def get_status():
     try:
-        res = requests.post("http://127.0.0.1:9944", headers={"Content-Type": "application/json"},
+        res = requests.post(rpc_url, headers={"Content-Type": "application/json"},
                             data=json.dumps({"jsonrpc": "2.0", "method": "bioauth_status", "params": [], "id": 1}))
         data = res.json()
         result = data.get("result", {})
@@ -150,7 +151,7 @@ def send_message_to_server(message, phone):
 
 def fetch_phone_number(nodename):
     try:
-        res = requests.get(f"http://whatsbot.gorahal.com/read_csv?node={nodename}", timeout=8)
+        res = requests.get(phone_lookup_api_url, params={"node": nodename}, timeout=8)
         data = res.json()
         return data.get("phone")
     except Exception as e:
@@ -168,7 +169,7 @@ def update_phone_if_needed():
 def format_message(minutes, expires_at):
     tz = pytz.timezone("Europe/Istanbul")
     time_str = datetime.fromtimestamp(expires_at).astimezone(tz).strftime("%I:%M %p")
-    return f"{nodename}  - 🤭 يجب التصوير في الوقت المكتوب تماما: ({time_str}) - {auth_url}"
+    return f"{nodename} - يجب التوثيق في الوقت المحدد: ({time_str}) - {auth_url}"
 
 def handle_status_and_alerts2():
     global monitoring_auth_url
@@ -176,7 +177,7 @@ def handle_status_and_alerts2():
     current_time = int(time.time())
     diff = expires_at - current_time
     if diff < 7000 and not monitoring_auth_url:
-        logging.info("🤭 بقي أكثر من 10 دقائق، بدء مراقبة الرابط المبكر...")
+        logging.info("⏳ اقترب موعد التوثيق، بدء مراقبة الرابط المبكر...")
         threading.Thread(target=monitor_auth_url_updates, daemon=True).start()
 
 def handle_status_and_alerts():
@@ -202,7 +203,7 @@ def handle_status_and_alerts():
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
-            success_msg = f" {nodename}) - {auth_url} - متبقي 30 دقيقة!"
+            success_msg = f"{nodename} - {auth_url} - متبقي 30 دقيقة!"
             send_telegram_error(success_msg)
             msg = format_message(30, expires_at)
             alert_30_sent = True
@@ -221,8 +222,8 @@ def handle_status_and_alerts():
             auth_url = get_live_auth_url()
             nodename = get_nodename()
             update_phone_if_needed()
-            send_message_to_server(f"⏰ ({nodename}) - {auth_url} - 😰 يجب التصوير فورا😰", phone)
-            success_msg = f" {nodename}) - {auth_url} - 😰 يجب التصوير فورا😰!"
+            send_message_to_server(f"⏰ {nodename} - {auth_url} - يجب التوثيق فورا", phone)
+            success_msg = f"{nodename} - {auth_url} - يجب التوثيق فورا!"
             send_telegram_error(success_msg)
             alert_missed_count += 1
             missed_alert_last_time = current_time
